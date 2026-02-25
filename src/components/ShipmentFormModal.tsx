@@ -92,7 +92,6 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
 
   useEffect(() => {
     if (shipment && mode === 'edit') {
-      console.log('Shipment data loaded:', shipment);
       setFormData(mapShipmentToFormData(shipment));
     } else {
       setFormData(initialFormData);
@@ -222,13 +221,6 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
     const city = City.getCitiesOfState(countryIsoCode || '', stateIsoCode || '').find(
       (c) => c.name === addressVal?.city
     )?.name;
-    console.log(
-      countryIsoCode,
-      State.getStatesOfCountry(countryIsoCode || ''),
-      stateIsoCode,
-      City.getCitiesOfState(countryIsoCode || '', stateIsoCode || ''),
-      city
-    );
 
     return {
       ...addressVal,
@@ -314,7 +306,6 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
 
     try {
       if (mode === 'edit' && shipment?.id) {
-        console.log('Updating shipment with input:', input);
         await updateShipment({
           variables: {
             id: shipment.id,
@@ -337,7 +328,6 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
       onSuccess?.();
       onClose();
     } catch (err: any) {
-      console.log('Create Shipment Error:', err.errors);
       const validationErrors = err.errors?.[0]?.extensions?.validationErrors;
 
       if (validationErrors) {
@@ -352,8 +342,7 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
   };
 
   if (!isOpen) return null;
-  console.log(errors.pickupAddress, errors);
-  console.log('formData:', formData);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
@@ -638,16 +627,21 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
         <div className="sticky bottom-0 bg-white border-t border-gray-100 px-6 py-4 flex justify-end gap-3 rounded-b-2xl">
           <button
             onClick={onClose}
+            disabled={creating || updating || shipmentDetailLoading}
             className="h-11 px-5 rounded-lg border border-gray-300 text-sm hover:bg-gray-50 transition"
           >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
-            disabled={creating}
+            disabled={creating || updating || shipmentDetailLoading}
             className="h-11 px-6 rounded-lg !bg-slate-900 text-white text-sm font-medium hover:!bg-slate-800 active:scale-[0.98] transition disabled:opacity-50"
           >
-            {creating ? 'Saving...' : mode === 'create' ? 'Create Shipment' : 'Update Shipment'}
+            {creating || updating
+              ? 'Saving...'
+              : mode === 'create'
+                ? 'Create Shipment'
+                : 'Update Shipment'}
           </button>
         </div>
       </div>

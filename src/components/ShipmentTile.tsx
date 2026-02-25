@@ -18,7 +18,7 @@ const ShipmentTile: React.FC<ShipmentTileProps> = ({ shipment, onSelect, onClick
 
   const handleActionClick = (action: string) => {
     setMenuOpen(false);
-    console.log(`Action clicked: ${action} for shipment ID: ${shipment.id}`);
+
     if (action === 'edit') {
       onClickEdit(shipment.id);
     } else if (action === 'flag') {

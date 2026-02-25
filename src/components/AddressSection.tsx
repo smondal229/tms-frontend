@@ -42,7 +42,7 @@ function AddressSection({
       }
     } as React.ChangeEvent<HTMLInputElement>);
   };
-  console.log('address data:', data);
+
   return (
     <section>
       <div className="mb-6">
