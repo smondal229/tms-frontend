@@ -1,9 +1,9 @@
 import { useMutation, useQuery } from '@apollo/client/react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { InformationCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { City, Country, State } from 'country-state-city';
 import { useSnackbar } from 'notistack';
 import { postcodeValidator } from 'postcode-validator';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { CarrierName } from '../common/constant';
 import { CREATE_SHIPMENT, UPDATE_SHIPMENT } from '../graphql/mutations';
 import { SHIPMENT_FORM_GET_SHIPMENT_BY_ID } from '../graphql/queries';
@@ -19,6 +19,7 @@ import {
 } from '../types/ShipmentForm';
 import AddressSection from './AddressSection';
 import Field from './common/Field';
+import SearchSelect from './common/SearchSelect';
 import SelectField from './common/SelectField';
 import StatusField from './StatusField';
 
@@ -50,6 +51,9 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
   });
   const shipment = shipmentData?.getShipmentById;
   const [updateShipment, { loading: updating }] = useMutation(UPDATE_SHIPMENT);
+  const citiesList = useMemo(() => {
+    return City.getAllCities().map((c) => c.name);
+  }, [shipment]);
 
   const initialFormData: ShipmentFormData = {
     shipperName: '',
@@ -89,6 +93,13 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
 
   const [formData, setFormData] = useState<ShipmentFormData>(initialFormData);
   const [errors, setErrors] = useState<any>({});
+  const disabledOnPickedUp = useMemo(() => {
+    return mode === 'edit' && shipment?.status !== ShipmentStatus.CREATED;
+  }, [mode, shipment?.status]);
+
+  const disabledOnDelivered = useMemo(() => {
+    return mode === 'edit' && shipment?.status === ShipmentStatus.DELIVERED;
+  }, [mode, shipment?.status]);
 
   useEffect(() => {
     if (shipment && mode === 'edit') {
@@ -99,9 +110,7 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
     setErrors({});
   }, [shipment, mode, isOpen]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
-
+  const updateField = (name: string, value: any, type?: string) => {
     if (name.startsWith('dimensions.')) {
       const key = name.split('.')[1];
       setFormData((prev) => ({
@@ -135,6 +144,11 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
         [name]: type === 'number' ? (value ? parseFloat(value) : null) : value
       }));
     }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
+    updateField(name, value, type);
   };
 
   const validateAddress = (
@@ -187,6 +201,11 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
       newErrors.itemValue = 'Item value must be greater than rate';
 
     if (formData.pickedUpAt && formData.deliveredAt && formData.pickedUpAt > formData.deliveredAt) {
+      newErrors.deliveredAt = 'Delivered date must be after picked up date';
+    }
+
+    if (mode === 'edit' && !formData.currentLocation) {
+      newErrors.currentLocation = 'Required';
     }
 
     validateAddress(formData.pickupAddress, 'pickupAddress', newErrors);
@@ -269,7 +288,7 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
     }
     const address = shipmentFormdata[prefix];
     const country = Country.getCountryByCode(address.country);
-    const state = State.getStateByCode(address.state);
+    const state = State.getStateByCodeAndCountry(address.state, address.country);
 
     return {
       city: address.city,
@@ -391,6 +410,7 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
         {!shipmentDetailLoading && !shipmentDetailError && (
           <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-6 py-6 space-y-8">
             <div className="bg-gray-50/60 border border-gray-200 rounded-xl p-5 space-y-5">
+              {' '}
               <h3 className="text-sm font-semibold text-gray-800">Shipment Details</h3>
               <div className="grid md:grid-cols-2 gap-6">
                 <Field
@@ -400,6 +420,12 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
                   placeholder="Enter shipper name"
                   onChange={handleChange}
                   error={errors.shipperName}
+                  disabled={disabledOnPickedUp}
+                  tooltip={
+                    disabledOnPickedUp
+                      ? 'Shipper name cannot be changed once shipment is picked up'
+                      : undefined
+                  }
                 />
                 <SelectField
                   label="Carrier Name"
@@ -408,6 +434,12 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
                   placeholder="Select carrier"
                   onChange={handleChange}
                   error={errors.carrierName}
+                  disabled={disabledOnPickedUp}
+                  tooltip={
+                    disabledOnPickedUp
+                      ? 'Carrier cannot be changed once shipment is picked up'
+                      : undefined
+                  }
                 >
                   <option value="">Select Carrier</option>
                   {Object.values(CarrierName).map((carrier) => (
@@ -421,6 +453,8 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
                     shipment={shipment}
                     formData={formData}
                     handleChange={handleChange}
+                    disabled={disabledOnDelivered}
+                    tooltip="Shipment status cannot be changed once shipment is delivered"
                   />
                 )}
               </div>
@@ -428,14 +462,18 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
             {mode === 'edit' && (
               <div className="bg-gray-50/60 border border-gray-200 rounded-xl p-6 space-y-4">
                 <h3 className="text-sm font-semibold text-gray-800">Tracking Details</h3>
-                <Field
+                <SearchSelect
                   label="Current Location"
-                  type="text"
-                  name="currentLocation"
-                  placeholder="Enter current location"
+                  value={formData.currentLocation}
+                  options={citiesList}
                   error={errors.currentLocation}
-                  value={formData.currentLocation || ''}
-                  onChange={handleChange}
+                  onChange={(val: string) => updateField('currentLocation', val)}
+                  disabled={disabledOnDelivered}
+                  tooltip={
+                    disabledOnDelivered
+                      ? 'Current location cannot be changed once shipment is delivered'
+                      : undefined
+                  }
                 />
               </div>
             )}
@@ -447,6 +485,7 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
                 data={formData.pickupAddress}
                 onChange={handleChange}
                 errors={errors || {}}
+                disabled={disabledOnPickedUp}
               />
 
               <div className="border-t border-gray-200" />
@@ -458,6 +497,7 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
                 data={formData.deliveryAddress}
                 onChange={handleChange}
                 errors={errors || {}}
+                disabled={disabledOnPickedUp}
               />
             </div>
 
@@ -470,24 +510,45 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
                   type="number"
                   name="rate"
                   placeholder="0.00"
+                  step="any"
                   error={errors.rate}
                   value={formData.rate || ''}
                   onChange={handleChange}
+                  disabled={disabledOnPickedUp}
+                  tooltip={
+                    disabledOnPickedUp
+                      ? 'Rate cannot be changed once shipment is picked up'
+                      : undefined
+                  }
                 />
                 <Field
                   label="Item Value ($)"
                   type="number"
                   name="itemValue"
                   placeholder="0.00"
+                  step="any"
                   value={formData.itemValue || ''}
                   onChange={handleChange}
                   error={errors.itemValue}
+                  disabled={disabledOnPickedUp}
+                  tooltip={
+                    disabledOnPickedUp
+                      ? 'Item value cannot be changed once shipment is picked up'
+                      : undefined
+                  }
                 />
                 <SelectField
                   label="Delivery Type"
                   name="shipmentDeliveryType"
                   value={formData.shipmentDeliveryType}
                   onChange={handleChange}
+                  disabled={disabledOnPickedUp}
+                  error={errors.shipmentDeliveryType}
+                  tooltip={
+                    disabledOnPickedUp
+                      ? 'Delivery type cannot be changed once shipment is picked up'
+                      : undefined
+                  }
                 >
                   {Object.values(ShipmentDeliveryType).map((t) => (
                     <option key={t} value={t}>
@@ -517,9 +578,15 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
                   {/* Dimension Unit */}
                   <SelectField
                     name="dimensions.lengthUnit"
-                    value={formData.dimensions?.lengthUnit}
+                    value={formData.dimensions?.lengthUnit?.toString?.()}
                     onChange={handleChange}
-                    className="!w-28"
+                    containerClassName="!w-28"
+                    disabled={disabledOnPickedUp}
+                    tooltip={
+                      disabledOnPickedUp
+                        ? 'Length unit cannot be changed once shipment is picked up'
+                        : undefined
+                    }
                   >
                     {Object.values(LengthUnit).map((unit) => (
                       <option key={unit} value={unit}>
@@ -536,8 +603,16 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
                     type="number"
                     name="dimensions.itemLength"
                     placeholder="0.0"
+                    step="any"
+                    min={1.0}
                     value={formData.dimensions?.itemLength || ''}
                     onChange={handleChange}
+                    disabled={disabledOnPickedUp}
+                    tooltip={
+                      disabledOnPickedUp
+                        ? 'Length cannot be changed once shipment is picked up'
+                        : undefined
+                    }
                   />
 
                   <Field
@@ -545,8 +620,16 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
                     type="number"
                     name="dimensions.itemWidth"
                     placeholder="0.0"
+                    min={1.0}
+                    step="any"
                     value={formData.dimensions?.itemWidth || ''}
                     onChange={handleChange}
+                    disabled={disabledOnPickedUp}
+                    tooltip={
+                      disabledOnPickedUp
+                        ? 'Width cannot be changed once shipment is picked up'
+                        : undefined
+                    }
                   />
 
                   <Field
@@ -554,17 +637,39 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
                     type="number"
                     name="dimensions.itemHeight"
                     placeholder="0.0"
+                    min={1.0}
+                    step="any"
                     value={formData.dimensions?.itemHeight || ''}
                     onChange={handleChange}
+                    disabled={disabledOnPickedUp}
+                    tooltip={
+                      disabledOnPickedUp
+                        ? 'Height cannot be changed once shipment is picked up'
+                        : undefined
+                    }
                   />
                 </div>
               </div>
 
               {/* ---------------- WEIGHT BLOCK ---------------- */}
               <div className="space-y-2">
-                <h4 className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                  Weight
-                </h4>
+                <div className="flex items-center gap-2">
+                  <h4 className="text-sm font-medium text-gray-700 tracking-wide">Weight</h4>
+                  {disabledOnPickedUp && (
+                    <div className="relative inline-flex group">
+                      <InformationCircleIcon className="w-4 h-4 text-gray-400 cursor-pointer" />
+
+                      <div
+                        className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-64
+                      opacity-0 group-hover:opacity-100
+                      transition bg-gray-900 text-white text-xs
+                      rounded-md px-3 py-2 shadow-lg z-[999] pointer-events-none"
+                      >
+                        Weight cannot be changed once shipment is picked up
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 <div className="flex">
                   <input
@@ -572,19 +677,33 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
                     name="dimensions.itemWeight"
                     value={formData.dimensions?.itemWeight || ''}
                     onChange={handleChange}
-                    className="flex-1 h-11 px-3 rounded-l-lg border border-gray-200 bg-white text-sm
+                    className={`flex-1 h-11 px-3 rounded-l-lg border border-gray-200 bg-white text-sm
         focus:outline-none focus:ring-2 focus:ring-slate-500/20
-        focus:border-slate-500 transition"
+        focus:border-slate-500 transition ${disabledOnPickedUp ? 'opacity-60 cursor-not-allowed' : ''}`}
                     placeholder="0.00"
+                    min={1.0}
+                    step="any"
+                    disabled={disabledOnPickedUp}
+                    title={
+                      disabledOnPickedUp
+                        ? 'Weight cannot be changed once shipment is picked up'
+                        : undefined
+                    }
                   />
 
                   <select
                     name="dimensions.weightUnit"
                     value={formData.dimensions?.weightUnit ?? ''}
                     onChange={handleChange}
-                    className="h-11 px-3 rounded-r-lg border border-l-0 border-gray-200 bg-gray-50 text-sm
+                    className={`h-11 px-3 rounded-r-lg border border-l-0 border-gray-200 bg-gray-50 text-sm
         focus:outline-none focus:ring-2 focus:ring-slate-500/20
-        focus:border-slate-500 transition"
+        focus:border-slate-500 transition ${disabledOnPickedUp ? 'opacity-60 cursor-not-allowed' : ''}`}
+                    disabled={disabledOnPickedUp}
+                    title={
+                      disabledOnPickedUp
+                        ? 'Weight unit cannot be changed once shipment is picked up'
+                        : undefined
+                    }
                   >
                     {Object.values(WeightUnit).map((unit) => (
                       <option key={unit} value={unit}>
@@ -607,7 +726,14 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
                     type="datetime-local"
                     name="pickedUpAt"
                     value={formData.pickedUpAt || ''}
+                    error={errors.pickedUpAt}
                     onChange={handleChange}
+                    disabled={disabledOnPickedUp}
+                    tooltip={
+                      disabledOnPickedUp
+                        ? 'Picked up time cannot be changed once shipment is picked up'
+                        : undefined
+                    }
                   />
                   <Field
                     label="Delivered At"
@@ -615,7 +741,14 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
                     name="deliveredAt"
                     placeholder="Select delivered time"
                     value={formData.deliveredAt || ''}
+                    error={errors.deliveredAt}
                     onChange={handleChange}
+                    disabled={disabledOnDelivered}
+                    tooltip={
+                      disabledOnDelivered
+                        ? 'Delivered time cannot be changed once shipment is delivered'
+                        : undefined
+                    }
                   />
                 </div>
               </div>

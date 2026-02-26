@@ -4,9 +4,11 @@ import { ShipmentStatus, type ShipmentFormData } from '../types/ShipmentForm';
 import SelectField from './common/SelectField';
 
 interface Props {
-  shipment?: Shipment | undefined;
+  shipment?: Shipment;
   formData: ShipmentFormData;
+  disabled?: boolean;
   handleChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  tooltip?: string;
 }
 
 /**
@@ -22,38 +24,33 @@ const STATUS_TRANSITIONS: Record<ShipmentStatusType, ShipmentStatusType[]> = {
   [ShipmentStatus.CANCELLED]: []
 };
 
-const StatusField: React.FC<Props> = ({ shipment, formData, handleChange }) => {
+const StatusField: React.FC<Props> = ({ shipment, formData, disabled, handleChange, tooltip }) => {
   const currentStatus = shipment?.status;
 
-  /**
-   * EDIT MODE
-   */
   if (!currentStatus) return null;
 
   const allowedNextStatuses = STATUS_TRANSITIONS[currentStatus] || [];
 
   return (
-    <div className="space-y-1.5">
-      <label className="text-sm font-medium text-gray-700">Status</label>
-
+    <div title={tooltip} className="space-y-1.5">
       <SelectField
         label="Status"
         name="status"
         value={formData.status}
+        disabled={disabled}
         onChange={handleChange}
-        className="w-full h-11 px-3 rounded-lg border bg-white text-sm
-        focus:outline-none focus:ring-2 focus:ring-slate-500/20
-        focus:border-slate-500"
+        tooltip={disabled ? tooltip : undefined}
       >
-        {/* Always show current status */}
-        <option value={currentStatus}>{currentStatus.replaceAll('_', ' ')}</option>
+        {Object.values(ShipmentStatus).map((status) => {
+          const isCurrent = status === currentStatus;
+          const isAllowed = allowedNextStatuses.includes(status);
 
-        {/* Show only valid next transitions */}
-        {allowedNextStatuses.map((status) => (
-          <option key={status} value={status}>
-            {status.replaceAll('_', ' ')}
-          </option>
-        ))}
+          return (
+            <option key={status} value={status} disabled={!isCurrent && !isAllowed}>
+              {status.replaceAll('_', ' ')}
+            </option>
+          );
+        })}
       </SelectField>
     </div>
   );

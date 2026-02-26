@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@apollo/client/react';
+import { useQuery } from '@apollo/client/react';
 import { ArrowPathIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { useSnackbar } from 'notistack';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -6,7 +6,6 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import ShipmentFormModal from '../components/ShipmentFormModal';
 import ShipmentGrid from '../components/ShipmentGrid';
 import ShipmentTile from '../components/ShipmentTile';
-import { UPDATE_SHIPMENT } from '../graphql/mutations';
 import { GET_SHIPMENTS } from '../graphql/queries';
 import type {
   GetShipmentsResponse,
@@ -31,7 +30,7 @@ const ShipmentsPage: React.FC = () => {
 
   const navigate = useNavigate();
 
-  const filters = useMemo(() => ({}), []); // Placeholder for future filters
+  const filters = useMemo(() => ({}), []);
   const baseVariables = useMemo(
     () => ({
       pageSize: 20,
@@ -50,7 +49,7 @@ const ShipmentsPage: React.FC = () => {
     }
   );
 
-  const [updateShipment, { loading: updating }] = useMutation(UPDATE_SHIPMENT);
+  // const [updateShipment, { loading: updating }] = useMutation(UPDATE_SHIPMENT);
 
   // const observer = useRef<IntersectionObserver | null>(null);
   // const isFetchingMoreRef = useRef(false);
@@ -100,6 +99,11 @@ const ShipmentsPage: React.FC = () => {
     setIsModalOpen(true);
   };
 
+  const onCloseModal = () => {
+    setShipmentId(null);
+    setIsModalOpen(false);
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
@@ -146,6 +150,10 @@ const ShipmentsPage: React.FC = () => {
             sort={sort}
           />
         </div>
+      ) : loading ? (
+        <div className="flex justify-center mt-6">
+          <div className="h-8 w-8 border-4 border-slate-200 border-t-slate-700 rounded-full animate-spin"></div>
+        </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {shipments.map((s, index) => {
@@ -175,7 +183,7 @@ const ShipmentsPage: React.FC = () => {
       {/* Shipment Form Modal */}
       <ShipmentFormModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => onCloseModal()}
         onSuccess={handleModalSuccess}
         mode={shipmentId ? 'edit' : 'create'}
         shipmentId={shipmentId}

@@ -112,6 +112,8 @@ export const SHIPMENT_FORM_GET_SHIPMENT_BY_ID = gql`
       trackingNumber
       shipperName
       carrierName
+      pickedUpAt
+      deliveredAt
       pickupAddress {
         city
         postalCode
