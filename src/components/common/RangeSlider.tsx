@@ -44,14 +44,23 @@ const RangeSlider = ({ min, max, value, onChange, label, formatValue }: RangeSli
           value={currentMin}
           onChange={(e) => {
             const val = Number(e.target.value);
-            if (val <= currentMax) onChange({ ...value, min: val === min ? null : val });
+            if (val <= currentMax) {
+              onChange({ ...value, min: val === min ? null : val });
+            }
           }}
-          className="absolute w-full appearance-none bg-transparent cursor-pointer
-                     [&::-webkit-slider-thumb]:appearance-none
-                     [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4
-                     [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-slate-700
-                     [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white
-                     [&::-webkit-slider-thumb]:shadow-md"
+          className="absolute w-full appearance-none bg-transparent pointer-events-none
+            [&::-webkit-slider-thumb]:pointer-events-auto
+            [&::-webkit-slider-thumb]:appearance-none
+            [&::-webkit-slider-thumb]:w-4
+            [&::-webkit-slider-thumb]:h-4
+            [&::-webkit-slider-thumb]:rounded-full
+            [&::-webkit-slider-thumb]:bg-slate-700
+            [&::-webkit-slider-thumb]:border-2
+            [&::-webkit-slider-thumb]:border-slate-700
+            [&::-webkit-slider-thumb]:shadow-lg
+            [&::-webkit-slider-thumb]:transition
+            hover:[&::-webkit-slider-thumb]:scale-120
+            active:[&::-webkit-slider-thumb]:scale-95"
         />
 
         {/* Max thumb */}
@@ -62,14 +71,23 @@ const RangeSlider = ({ min, max, value, onChange, label, formatValue }: RangeSli
           value={currentMax}
           onChange={(e) => {
             const val = Number(e.target.value);
-            if (val >= currentMin) onChange({ ...value, max: val === max ? null : val });
+            if (val >= currentMin) {
+              onChange({ ...value, max: val === max ? null : val });
+            }
           }}
-          className="absolute w-full appearance-none bg-transparent cursor-pointer
-                     [&::-webkit-slider-thumb]:appearance-none
-                     [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4
-                     [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-slate-700
-                     [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white
-                     [&::-webkit-slider-thumb]:shadow-md"
+          className="absolute w-full appearance-none bg-transparent pointer-events-none
+            [&::-webkit-slider-thumb]:pointer-events-auto
+            [&::-webkit-slider-thumb]:appearance-none
+            [&::-webkit-slider-thumb]:w-4
+            [&::-webkit-slider-thumb]:h-4
+            [&::-webkit-slider-thumb]:rounded-full
+            [&::-webkit-slider-thumb]:bg-slate-700
+            [&::-webkit-slider-thumb]:border-2
+            [&::-webkit-slider-thumb]:border-slate-700
+            [&::-webkit-slider-thumb]:shadow-lg
+            [&::-webkit-slider-thumb]:transition
+            hover:[&::-webkit-slider-thumb]:scale-120
+            active:[&::-webkit-slider-thumb]:scale-95"
         />
       </div>
     </div>

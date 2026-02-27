@@ -58,17 +58,18 @@ export interface Shipment {
   deliveryAddress: Address;
 
   trackingNumber: string;
-  rate?: number;
 
-  status?: ShipmentStatus;
-  shipmentDeliveryType?: ShipmentDeliveryType;
+  status: ShipmentStatus;
+  shipmentDeliveryType: ShipmentDeliveryType;
 
-  createdAt?: string;
-  updatedAt?: string;
+  isFlagged: boolean;
+  createdAt: string;
+  updatedAt: string;
 
   pickedUpAt?: string;
   deliveredAt?: string;
 
+  rate?: number;
   itemValue?: number;
 
   itemLength?: number;
@@ -141,5 +142,22 @@ export interface GetShipmentsQuery {
       hasNextPage: boolean;
       endCursor: string | null;
     };
+  };
+}
+
+export interface GetAllFilterOptionsResponse {
+  getAllFilterOptions: {
+    carriers: {
+      value: string;
+      label: string;
+    }[];
+    statuses: {
+      value: string;
+      label: string;
+    }[];
+    shipmentDeliveryTypes: {
+      value: string;
+      label: string;
+    }[];
   };
 }

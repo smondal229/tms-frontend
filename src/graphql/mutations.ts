@@ -42,3 +42,15 @@ export const UPDATE_SHIPMENT = gql`
     }
   }
 `;
+
+export const DELETE_SHIPMENT = gql`
+  mutation DeleteShipmentById($id: ID!) {
+    deleteShipmentById(id: $id)
+  }
+`;
+
+export const FLAG_SHIPMENT = gql`
+  mutation FlagShipmentById($id: ID!, $flagged: Boolean!) {
+    flagShipmentById(id: $id, flagged: $flagged)
+  }
+`;

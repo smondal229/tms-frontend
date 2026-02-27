@@ -1,4 +1,4 @@
-import { ArrowDownIcon, ArrowUpIcon } from '@heroicons/react/24/outline';
+import { ArrowDownIcon, ArrowUpIcon, ChevronUpDownIcon } from '@heroicons/react/24/outline';
 import React, { useEffect, useRef } from 'react';
 import { formatDate, formatRate, getShipmentStatusLabel } from '../helpers/shipments';
 import type { SortState } from '../pages/ShipmentsPage';
@@ -83,12 +83,33 @@ const COLUMNS: ColumnConfig[] = [
     sortable: true,
     sortKey: 'STATUS',
     align: 'left',
-    render: (s) => (
-      <ShipmentStatusBadge
-        status={s.status}
-        tooltip={getShipmentStatusLabel(s)}
-      />
-    )
+    render: (s) => <ShipmentStatusBadge status={s.status} tooltip={getShipmentStatusLabel(s)} />
+  },
+  {
+    key: 'shipmentDeliveryType',
+    label: 'Delivery Type',
+    sortable: false,
+    render: (s) => {
+      const type = s.shipmentDeliveryType;
+
+      const styles = {
+        STANDARD: 'bg-slate-100 text-slate-700',
+        EXPRESS: 'bg-blue-100 text-blue-700',
+        SAME_DAY: 'bg-emerald-100 text-emerald-700'
+      };
+
+      return type ? (
+        <span
+          className={`px-2.5 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
+            styles[type] ?? 'bg-gray-100 text-gray-600'
+          }`}
+        >
+          {type.replace('_', ' ')}
+        </span>
+      ) : (
+        '-'
+      );
+    }
   },
   {
     key: 'rate',
@@ -217,6 +238,9 @@ const ShipmentGrid: React.FC<ShipmentGridProps> = ({
                         <ArrowDownIcon
                           className={`w-3 h-3 ${sort?.field === col.sortKey && sort?.direction === 'DESC' ? 'text-gray-900' : 'text-gray-300'}`}
                         />
+                      )}
+                      {sort?.field !== col.sortKey && (
+                        <ChevronUpDownIcon className={`w-4 h-4 text-gray-600`} />
                       )}
                     </span>
                   )}

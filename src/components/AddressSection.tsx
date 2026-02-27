@@ -1,5 +1,6 @@
 import { City, Country, State } from 'country-state-city';
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import Field from './common/Field';
 import SelectField from './common/SelectField';
 
@@ -22,6 +23,7 @@ function AddressSection({
   errors,
   disabled = false
 }: AddressSectionProps) {
+  const { t } = useTranslation();
   const countries = useMemo(() => {
     return Country.getAllCountries();
   }, []);
@@ -56,7 +58,7 @@ function AddressSection({
         <div className="grid grid-cols-2 gap-x-8 gap-y-6">
           <div>
             <SelectField
-              label="Country"
+              label={t('country')}
               value={data.country}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
                 emitChange('country', e.target.value)
@@ -64,7 +66,7 @@ function AddressSection({
               error={errors[`${prefix}.country`]}
               disabled={disabled}
             >
-              <option value="">Select country</option>
+              <option value="">{t('select_country')}</option>
               {countries.map((c) => (
                 <option key={c.isoCode} value={c.isoCode}>
                   {c.name}
@@ -76,13 +78,13 @@ function AddressSection({
           {/* State */}
           <div>
             <SelectField
-              label="State"
+              label={t('state')}
               value={data.state}
               onChange={(e) => emitChange('state', e.target.value)}
               error={errors[`${prefix}.state`]}
               disabled={disabled || !data.country}
             >
-              <option value="">Select state</option>
+              <option value="">{t('select_state')}</option>
               {states.map((s) => (
                 <option key={s.isoCode} value={s.isoCode}>
                   {s.name}
@@ -92,26 +94,26 @@ function AddressSection({
           </div>
 
           <Field
-            label="Postal Code"
+            label={t('postal_code')}
             name={`${prefix}.postalCode`}
             value={data.postalCode}
             onChange={onChange}
             pattern="[a-zA-Z0-9 -]*"
             maxLength={10}
-            placeholder={data.country === 'US' ? 'Enter ZIP code' : 'Postal code'}
+            placeholder={data.country === 'US' ? t('zip_code') : t('postal_code')}
             error={errors[`${prefix}.postalCode`]}
             disabled={disabled}
           />
 
           <div>
             <SelectField
-              label="City"
+              label={t('city')}
               value={data.city}
               onChange={(e) => emitChange('city', e.target.value)}
               error={errors[`${prefix}.city`]}
               disabled={disabled || !data.state}
             >
-              <option value="">Select city</option>
+              <option value="">{t('select_city')}</option>
               {cities.map((c) => (
                 <option key={c.name} value={c.name}>
                   {c.name}
@@ -123,20 +125,20 @@ function AddressSection({
 
         <div className="mt-8 space-y-6">
           <Field
-            label="Street"
+            label={t('street')}
             name={`${prefix}.street`}
             value={data.street}
-            placeholder="Enter street address"
+            placeholder={t('enter_street_address')}
             onChange={onChange}
             error={errors[`${prefix}.street`]}
             disabled={disabled}
           />
 
           <Field
-            label="Contact Number"
+            label={t('contact_number')}
             name={`${prefix}.contactNumber`}
             value={data.contactNumber}
-            placeholder="Enter contact number"
+            placeholder={t('enter_contact_number')}
             type="tel"
             error={errors[`${prefix}.contactNumber`]}
             onChange={onChange}
@@ -152,7 +154,7 @@ function AddressSection({
                     transition-opacity duration-200
                     whitespace-nowrap z-50"
         >
-          This section is not allowed to be edited once shipment is picked up
+          {t('address_section_edit_disabled')}
         </div>
       )}
     </div>

@@ -36,6 +36,7 @@ export const GET_SHIPMENTS = gql`
         rate
         shipmentDeliveryType
         itemValue
+        isFlagged
         currentLocation
         paymentMeta {
           currency
@@ -150,6 +151,25 @@ export const SHIPMENT_FORM_GET_SHIPMENT_BY_ID = gql`
         paymentMethod
         transactionId
         status
+      }
+    }
+  }
+`;
+
+export const GET_ALL_FILTER_OPTIONS = gql`
+  query GetAllFilterOptions {
+    getAllFilterOptions {
+      carriers {
+        value
+        label
+      }
+      statuses {
+        value
+        label
+      }
+      shipmentDeliveryTypes {
+        value
+        label
       }
     }
   }
