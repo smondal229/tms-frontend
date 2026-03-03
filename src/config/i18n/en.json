@@ -85,5 +85,7 @@
   "pickup_time_change_error": "Picked up time cannot be changed once shipment is picked up",
   "delivery_time_change_error": "Delivered time cannot be changed once shipment is delivered",
   "cancel": "Cancel",
-  "save": "Save"
+  "save": "Save",
+  "calculating_rate": "Calculating rate",
+  "auto_calculated": "Auto-calculated field"
 }

@@ -8,7 +8,7 @@ import {
 } from '@heroicons/react/24/outline';
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { GET_SHIPMENT_BY_ID } from '../graphql/queries';
+import { GET_SHIPMENT_BY_ID } from '../graphql/shipments/queries';
 import {
   formatDate,
   formatRate,

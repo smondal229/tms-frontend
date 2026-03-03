@@ -1,14 +1,14 @@
-import { useMutation, useQuery } from '@apollo/client/react';
+import { useLazyQuery, useMutation, useQuery } from '@apollo/client/react';
 import { InformationCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { City, Country, State } from 'country-state-city';
 import { useSnackbar } from 'notistack';
 import { postcodeValidator } from 'postcode-validator';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CarrierName } from '../common/constant';
-import { CREATE_SHIPMENT, UPDATE_SHIPMENT } from '../graphql/mutations';
-import { SHIPMENT_FORM_GET_SHIPMENT_BY_ID } from '../graphql/queries';
-import type { AddressInput } from '../graphql/types';
+import { CREATE_SHIPMENT, UPDATE_SHIPMENT } from '../graphql/shipments/mutations';
+import { CALCULATE_RATE, SHIPMENT_FORM_GET_SHIPMENT_BY_ID } from '../graphql/shipments/queries';
+import type { AddressInput } from '../graphql/shipments/types';
 import { normalizePhone, toDateTimeLocal, toISOStringSafe } from '../helpers/shipments';
 import type { GetShipmentByIdResponse, Shipment } from '../types/Shipment';
 import type { ShipmentFormData } from '../types/ShipmentForm';
@@ -23,6 +23,10 @@ import Field from './common/Field';
 import SearchSelect from './common/SearchSelect';
 import SelectField from './common/SelectField';
 import StatusField from './StatusField';
+
+interface CalculateRateResponse {
+  calculateRate: number;
+}
 
 interface ShipmentFormModalProps {
   isOpen: boolean;
@@ -40,7 +44,10 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
   mode = 'create'
 }) => {
   const { t } = useTranslation();
+
   const { enqueueSnackbar } = useSnackbar();
+  const latestRequestRef = useRef(0);
+
   const [createShipment, { loading: creating }] = useMutation(CREATE_SHIPMENT);
   const {
     data: shipmentData,
@@ -51,6 +58,11 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
     variables: { id: shipmentId },
     skip: !shipmentId
   });
+
+  const [calculateRate, { data, loading: rateLoading, error: rateError }] =
+    useLazyQuery<CalculateRateResponse>(CALCULATE_RATE, {
+      fetchPolicy: 'no-cache'
+    });
   const shipment = shipmentData?.getShipmentById;
   const [updateShipment, { loading: updating }] = useMutation(UPDATE_SHIPMENT);
   const citiesList = useMemo(() => {
@@ -99,6 +111,54 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
     return mode === 'edit' && shipment?.status !== ShipmentStatus.CREATED;
   }, [mode, shipment?.status]);
 
+  const pricingRequest = useMemo(() => {
+    const {
+      carrierName,
+      shipmentDeliveryType,
+      pickupAddress,
+      deliveryAddress,
+      dimensions,
+      itemValue
+    } = formData;
+
+    if (
+      !carrierName ||
+      !shipmentDeliveryType ||
+      !pickupAddress?.country ||
+      !deliveryAddress?.country ||
+      !dimensions?.itemWeight ||
+      !dimensions?.itemLength ||
+      !dimensions?.itemWidth ||
+      !dimensions?.itemHeight ||
+      !dimensions?.lengthUnit ||
+      !dimensions?.weightUnit ||
+      !itemValue
+    ) {
+      return null;
+    }
+
+    return {
+      carrierName,
+      deliveryType: shipmentDeliveryType,
+      pickupCountry: pickupAddress.country,
+      deliveryCountry: deliveryAddress.country,
+      itemWeight: Number(dimensions.itemWeight),
+      itemLength: Number(dimensions.itemLength),
+      itemWidth: Number(dimensions.itemWidth),
+      itemHeight: Number(dimensions.itemHeight),
+      itemValue: Number(itemValue),
+      lengthUnit: dimensions.lengthUnit,
+      weightUnit: dimensions.weightUnit
+    };
+  }, [
+    formData.carrierName,
+    formData.shipmentDeliveryType,
+    formData.pickupAddress,
+    formData.deliveryAddress,
+    formData.dimensions,
+    formData.itemValue
+  ]);
+
   const disabledOnDelivered = useMemo(() => {
     return mode === 'edit' && shipment?.status === ShipmentStatus.DELIVERED;
   }, [mode, shipment?.status]);
@@ -111,6 +171,51 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
     }
     setErrors({});
   }, [shipment, mode, isOpen]);
+
+  useEffect(() => {
+    if (data?.calculateRate !== undefined) {
+      setFormData((prev) => ({
+        ...prev,
+        rate: data.calculateRate
+      }));
+    }
+  }, [data?.calculateRate]);
+
+  useEffect(() => {
+    if (rateError) {
+      console.error('Rate calculation failed', rateError);
+
+      // Optional: clear stale rate
+      setFormData((prev) => ({
+        ...prev,
+        rate: null
+      }));
+    }
+  }, [rateError]);
+
+  useEffect(() => {
+    if (!pricingRequest) return;
+
+    const requestId = ++latestRequestRef.current;
+
+    const timeout = setTimeout(() => {
+      calculateRate({
+        variables: { pricingRequest }
+      }).then((res) => {
+        if (requestId === latestRequestRef.current) {
+          const newRate = res.data?.calculateRate;
+          if (newRate !== undefined) {
+            setFormData((prev) => ({
+              ...prev,
+              rate: newRate
+            }));
+          }
+        }
+      });
+    }, 600);
+
+    return () => clearTimeout(timeout);
+  }, [pricingRequest]);
 
   const updateField = (name: string, value: any, type?: string) => {
     if (name.startsWith('dimensions.')) {
@@ -199,8 +304,6 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
     if (!formData.shipperName?.trim()) newErrors.shipperName = 'Required';
     if (!formData.carrierName) newErrors.carrierName = 'Required';
     if (!formData.shipmentDeliveryType) newErrors.shipmentDeliveryType = 'Required';
-    if (formData.itemValue && formData.rate && formData.itemValue < formData.rate)
-      newErrors.itemValue = t('item_value_gt_rate_error');
 
     if (formData.pickedUpAt && formData.deliveredAt && formData.pickedUpAt > formData.deliveredAt) {
       newErrors.deliveredAt = t('deliver_date_change_error');
@@ -500,14 +603,15 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
                   label="Rate ($)"
                   type="number"
                   name="rate"
-                  placeholder="0.00"
-                  step="any"
-                  error={errors.rate}
                   value={formData.rate || ''}
-                  onChange={handleChange}
-                  disabled={disabledOnPickedUp}
-                  tooltip={disabledOnPickedUp ? t('rate_change_error') : undefined}
+                  readOnly
+                  disabled
+                  tooltip={t('auto_calculated')}
+                  loading={rateLoading}
                 />
+                {rateLoading && (
+                  <span className="text-xs text-gray-500">{`${t('calculating_rate')}...`}</span>
+                )}
                 <Field
                   label="Item Value ($)"
                   type="number"

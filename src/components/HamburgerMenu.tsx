@@ -1,16 +1,27 @@
 import { Bars3Icon, ChartBarIcon, DocumentTextIcon, TruckIcon } from '@heroicons/react/24/outline';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../auth/AuthProvider';
 
-const menuItems = [
-  { label: 'Dashboard', icon: ChartBarIcon, path: null },
-  { label: 'Shipments', icon: TruckIcon, path: '/shipments' },
-  { label: 'Reports', icon: DocumentTextIcon, path: null }
-];
 const HamburgerMenu: React.FC = () => {
   const [open, setOpen] = useState(true);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
+  const menuItems = useMemo(
+    () =>
+      user?.role === 'ADMIN'
+        ? [
+            { label: 'Dashboard', icon: ChartBarIcon, path: null },
+            { label: 'Shipments', icon: TruckIcon, path: '/shipments' },
+            { label: 'Users', icon: DocumentTextIcon, path: null }
+          ]
+        : [
+            { label: 'Dashboard', icon: ChartBarIcon, path: null },
+            { label: 'Shipments', icon: TruckIcon, path: '/shipments' }
+          ],
+    [user?.role]
+  );
   return (
     <div
       className={`bg-gray-800 text-white min-h-screen transition-all duration-300 ${

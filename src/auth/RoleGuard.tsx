@@ -1,0 +1,16 @@
+import { useAuth } from './AuthProvider';
+
+interface RoleGuardProps {
+  roles: ('ADMIN' | 'EMPLOYEE')[];
+  children: React.ReactNode;
+}
+
+export function RoleGuard({ roles, children }: RoleGuardProps) {
+  const { user } = useAuth();
+
+  if (!user || !roles.includes(user.role)) {
+    return null;
+  }
+
+  return <>{children}</>;
+}

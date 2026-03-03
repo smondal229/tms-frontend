@@ -4,9 +4,10 @@ interface FieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string;
   error?: string;
   tooltip?: string;
+  loading?: boolean;
 }
 
-const Field: React.FC<FieldProps> = ({ label, error, disabled, tooltip, ...props }) => (
+const Field: React.FC<FieldProps> = ({ label, error, disabled, tooltip, loading, ...props }) => (
   <div className="space-y-1.5">
     {/* Label + Info */}
     <div className="flex items-center gap-1">
@@ -27,15 +28,23 @@ const Field: React.FC<FieldProps> = ({ label, error, disabled, tooltip, ...props
       )}
     </div>
 
-    {/* Input */}
-    <input
-      {...props}
-      disabled={disabled}
-      className={`w-full h-11 px-3 rounded-lg border text-sm transition
+    <div className="relative">
+      {/* Input */}
+      <input
+        title={tooltip}
+        {...props}
+        disabled={disabled}
+        className={`w-full h-11 px-3 rounded-lg border text-sm transition
         ${disabled ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'bg-white'}
         ${error ? 'border-red-400 focus:ring-red-200' : 'border-gray-200 focus:ring-slate-500/20 focus:border-slate-500'}
         focus:outline-none focus:ring-2`}
-    />
+      />
+      {loading && (
+        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+          <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+        </div>
+      )}
+    </div>
 
     {/* Disabled Helper */}
     {/* {disabled && tooltip && <p className="text-xs text-gray-500">{tooltip}</p>} */}

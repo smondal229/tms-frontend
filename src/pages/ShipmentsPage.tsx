@@ -8,8 +8,8 @@ import FilterPopover from '../components/FilterPopover';
 import ShipmentFormModal from '../components/ShipmentFormModal';
 import ShipmentGrid from '../components/ShipmentGrid';
 import ShipmentTile from '../components/ShipmentTile';
-import { DELETE_SHIPMENT, FLAG_SHIPMENT } from '../graphql/mutations';
-import { GET_SHIPMENTS } from '../graphql/queries';
+import { DELETE_SHIPMENT, FLAG_SHIPMENT } from '../graphql/shipments/mutations';
+import { GET_SHIPMENTS } from '../graphql/shipments/queries';
 import type {
   GetShipmentsResponse,
   Shipment,
@@ -174,7 +174,7 @@ const ShipmentsPage: React.FC = () => {
     observerRef.current.observe(sentinel);
 
     return () => observerRef.current?.disconnect();
-  }, [shipments.length, endCursor, hasNextPage, fetchMore, baseVariables]);
+  }, [shipments.length, endCursor, hasNextPage, fetchMore, baseVariables, viewMode]);
 
   const onClickFlag = async (
     shipmentId: string,

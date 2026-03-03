@@ -174,3 +174,9 @@ export const GET_ALL_FILTER_OPTIONS = gql`
     }
   }
 `;
+
+export const CALCULATE_RATE = gql`
+  query CalculateRate($pricingRequest: PricingRequest!) {
+    calculateRate(pricingRequest: $pricingRequest)
+  }
+`;

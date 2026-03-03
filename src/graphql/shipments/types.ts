@@ -1,4 +1,4 @@
-import type { ShipmentDeliveryType, ShipmentStatus } from "../types/Shipment";
+import type { ShipmentDeliveryType, ShipmentStatus } from '../../types/Shipment';
 
 export type PaymentStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED';
 
