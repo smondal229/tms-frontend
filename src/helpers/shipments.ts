@@ -92,3 +92,8 @@ export const toDateTimeLocal = (isoString?: string | null) => {
 
 export const toISOStringSafe = (localDate?: string | null) =>
   localDate ? new Date(localDate).toISOString() : null;
+
+export const generatePassword = () => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%';
+  return Array.from({ length: 12 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+};

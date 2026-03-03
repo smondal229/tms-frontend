@@ -19,14 +19,17 @@ export const REFRESH_TOKEN = gql`
 `;
 
 export const SIGNUP = gql`
-  mutation Signup($username: String!, $password: String!, $role: Role!) {
-    signup(username: $username, password: $password, role: $role)
+  mutation Signup($signupInput: SignupInput!) {
+    signup(signupInput: $signupInput)
   }
 `;
 
 export const VERIFY_EMAIL = gql`
   mutation VerifyEmail($token: String!) {
-    verifyEmail(token: $token)
+    verifyEmail(token: $token) {
+      verifiedEmail
+      success
+    }
   }
 `;
 
@@ -44,7 +47,10 @@ export const REQUEST_PASSWORD_RESET = gql`
 
 export const RESET_PASSWORD = gql`
   mutation ResetPassword($token: String!, $newPassword: String!) {
-    resetPassword(token: $token, newPassword: $newPassword)
+    resetPassword(token: $token, newPassword: $newPassword) {
+      username
+      success
+    }
   }
 `;
 

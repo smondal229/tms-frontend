@@ -1,7 +1,8 @@
 export interface User {
-  id: number;
+  id?: number;
   username: string;
   role: string;
-  verified: boolean;
-  authorities: string[];
+  verified?: boolean;
+  authorities?: string[];
+  password?: string;
 }

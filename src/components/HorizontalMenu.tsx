@@ -1,3 +1,4 @@
+import { enqueueSnackbar } from 'notistack';
 import React from 'react';
 import { useAuth } from '../auth/AuthProvider';
 
@@ -5,6 +6,14 @@ const horizontalItems = ['Overview', 'Shipments', 'Analytics'];
 
 const HorizontalMenu: React.FC = () => {
   const { logout } = useAuth();
+
+  const onLogoutClick = async () => {
+    const success = await logout();
+
+    if (!success) {
+      enqueueSnackbar('Logout failed', { variant: 'error', autoHideDuration: 3000 });
+    }
+  };
 
   return (
     <div className="bg-white shadow px-4 py-2 flex space-x-4 justify-between">
@@ -15,7 +24,10 @@ const HorizontalMenu: React.FC = () => {
           </button>
         ))}
       </div>
-      <button className="text-gray-700 font-medium hover:text-blue-600" onClick={() => logout()}>
+      <button
+        className="text-gray-700 font-medium hover:text-blue-600"
+        onClick={() => onLogoutClick()}
+      >
         Logout
       </button>
     </div>

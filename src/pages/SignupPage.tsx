@@ -25,9 +25,11 @@ export default function SignupPage() {
     try {
       await signup({
         variables: {
-          username: form.username,
-          password: form.password,
-          role: form.role
+          signupInput: {
+            username: form.username,
+            password: form.password,
+            role: form.role
+          }
         }
       });
 

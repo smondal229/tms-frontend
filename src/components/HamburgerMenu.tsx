@@ -14,7 +14,7 @@ const HamburgerMenu: React.FC = () => {
         ? [
             { label: 'Dashboard', icon: ChartBarIcon, path: null },
             { label: 'Shipments', icon: TruckIcon, path: '/shipments' },
-            { label: 'Users', icon: DocumentTextIcon, path: null }
+            { label: 'Users', icon: DocumentTextIcon, path: '/users' }
           ]
         : [
             { label: 'Dashboard', icon: ChartBarIcon, path: null },

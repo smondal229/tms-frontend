@@ -14,20 +14,28 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import LoginPage from './pages/LoginPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import SignupPage from './pages/SignupPage';
+import UserManagementPage from './pages/UserManagementPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
+import GuestRoute from './routes/GuestRoute';
 
 const App: React.FC = () => {
   return (
     <AuthProvider>
       <Router>
         <Routes>
-          {/* PUBLIC ROUTES */}
+          {/* PUBLIC ROUTES (accessible always) */}
           <Route element={<PublicLayout />}>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<SignupPage />} />
             <Route path="/verify" element={<VerifyEmailPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
+          </Route>
+
+          {/* GUEST ONLY ROUTES (only if NOT logged in) */}
+          <Route element={<GuestRoute />}>
+            <Route element={<PublicLayout />}>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/signup" element={<SignupPage />} />
+            </Route>
           </Route>
 
           {/* PROTECTED ROUTES */}
@@ -35,6 +43,7 @@ const App: React.FC = () => {
             <Route element={<AppLayout />}>
               <Route path="/shipments" element={<ShipmentsPage />} />
               <Route path="/shipments/:shipmentId" element={<ShipmentDetail />} />
+              <Route path="/users" element={<UserManagementPage />} />
               <Route path="/" element={<Navigate to="/shipments" replace />} />
             </Route>
           </Route>

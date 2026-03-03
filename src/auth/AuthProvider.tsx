@@ -17,7 +17,7 @@ interface AuthContextType {
   loading: boolean;
   login: (tokens: { accessToken: string; refreshToken: string }) => Promise<void>;
   refreshToken: () => Promise<void>;
-  logout: () => void;
+  logout: () => boolean;
   isAuthenticated: boolean;
 }
 
@@ -133,13 +133,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (err) {
       console.error(err);
-      alert('Logout failed');
-      return;
+      return false;
     }
     localStorage.removeItem(REFRESH_TOKEN_KEY);
     tokenService.clear();
     setToken(null);
     setUser(null);
+    return true;
   }, []);
 
   const isAuthenticated = !!user;

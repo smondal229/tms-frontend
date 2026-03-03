@@ -26,3 +26,21 @@ export interface RefreshTokenResponse {
 export interface GetUserDetailsResponse {
   me: User;
 }
+
+export interface UsersList {
+  users: User[];
+}
+
+export interface GetAllUsersResponse {
+  getAllUsers: User[];
+}
+
+export interface VerifyEmailResponse {
+  success: boolean;
+  verifiedEmail: string;
+}
+
+export interface ResetPasswordResponse {
+  success: boolean;
+  username: string;
+}

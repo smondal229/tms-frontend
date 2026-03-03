@@ -18,6 +18,7 @@ export const GET_ALL_USERS = gql`
       id
       username
       role
+      verified
     }
   }
 `;

@@ -21,65 +21,67 @@ const errorLink = new ApolloLink((operation, forward) => {
   return new Observable((observer) => {
     let subscription: any;
 
-    const handle = () => {
-      subscription = forward(operation).subscribe({
-        next: (result) => observer.next(result),
-        error: async (error) => {
-          const { graphQLErrors } = error as any;
+    subscription = forward(operation).subscribe({
+      next: async (result) => {
+        console.log('result', result);
+        // 🔥 Detect GraphQL errors here
+        if (result.errors) {
+          const unauthorizedError = result.errors.find(
+            (err: any) =>
+              err.message?.toLowerCase().includes('not authorized') ||
+              err.message?.toLowerCase().includes('unauthorized')
+          );
+          console.log('unauthorizedError', unauthorizedError);
+          if (unauthorizedError) {
+            try {
+              const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+              console.log;
+              if (!refreshToken) throw new Error('No refresh token found');
 
-          if (graphQLErrors) {
-            for (const err of graphQLErrors) {
-              if (err.extensions?.code === 'UNAUTHENTICATED') {
-                try {
-                  const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
-                  if (!refreshToken) throw new Error('No refresh token found');
+              const { data } = await refreshClient.mutate<
+                RefreshTokenResponse,
+                RefreshTokenRequest
+              >({
+                mutation: REFRESH_TOKEN,
+                variables: { refreshToken }
+              });
 
-                  // Execute the REFRESH_TOKEN mutation
-                  const { data } = await refreshClient.mutate<
-                    RefreshTokenResponse,
-                    RefreshTokenRequest
-                  >({
-                    mutation: REFRESH_TOKEN,
-                    variables: { refreshToken }
-                  });
+              const newToken = data?.refreshToken?.accessToken;
+              if (!newToken) throw new Error('Failed to refresh token');
 
-                  const newToken = data?.refreshToken?.accessToken;
-                  if (!newToken) throw new Error('Failed to refresh token');
+              localStorage.setItem(ACCESS_TOKEN_KEY, newToken);
 
-                  // Save the new access token
-                  localStorage.setItem(ACCESS_TOKEN_KEY, newToken);
-
-                  // Retry the original operation with new token
-                  const oldHeaders = operation.getContext().headers || {};
-                  operation.setContext({
-                    headers: {
-                      ...oldHeaders,
-                      Authorization: `Bearer ${newToken}`
-                    }
-                  });
-
-                  subscription = forward(operation).subscribe(observer);
-                  return;
-                } catch (e) {
-                  localStorage.removeItem(ACCESS_TOKEN_KEY);
-                  localStorage.removeItem(REFRESH_TOKEN_KEY);
-
-                  navigateToLogin();
-                  observer.error(e);
-                  return;
+              // retry operation
+              const oldHeaders = operation.getContext().headers || {};
+              operation.setContext({
+                headers: {
+                  ...oldHeaders,
+                  Authorization: `Bearer ${newToken}`
                 }
-              }
+              });
+
+              subscription = forward(operation).subscribe(observer);
+              return;
+            } catch (e) {
+              localStorage.removeItem(ACCESS_TOKEN_KEY);
+              localStorage.removeItem(REFRESH_TOKEN_KEY);
+              navigateToLogin();
+              observer.error(e);
+              return;
             }
           }
+        }
 
-          // Pass any other errors
-          observer.error(error);
-        },
-        complete: () => observer.complete()
-      });
-    };
+        observer.next(result);
+      },
 
-    handle();
+      error: (networkError) => {
+        console.log('Network error:', networkError);
+        observer.error(networkError);
+      },
+
+      complete: () => observer.complete()
+    });
 
     return () => subscription?.unsubscribe();
   });
