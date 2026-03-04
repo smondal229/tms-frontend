@@ -17,7 +17,7 @@ interface AuthContextType {
   loading: boolean;
   login: (tokens: { accessToken: string; refreshToken: string }) => Promise<void>;
   refreshToken: () => Promise<void>;
-  logout: () => boolean;
+  logout: () => Promise<boolean>;
   isAuthenticated: boolean;
 }
 
@@ -50,6 +50,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let mounted = true;
     const initialize = async () => {
+      setLoading(true);
+
       const savedToken = tokenService.getAccessToken();
       console.log('savedToken', savedToken);
       if (!savedToken) {
@@ -66,12 +68,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(data.me);
           setToken(savedToken);
         } else {
-          console.log('mounted 65', mounted);
           logout();
         }
       } catch (err) {
-        console.log('mounted 69', mounted);
-
         if (!mounted) return;
         console.error(err);
         logout();
@@ -97,7 +96,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data } = await fetchMe();
       setUser(data?.me ?? null);
     } catch (err) {
-      // If login fails, clear tokens
       logout();
     }
   }, []);
@@ -116,7 +114,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     tokenService.setAccessToken(newAccessToken);
     setToken(newAccessToken);
 
-    // Optionally refresh user info
     try {
       const { data } = await fetchMe();
       setUser(data?.me ?? null);

@@ -2,6 +2,7 @@ import { useMutation } from '@apollo/client/react';
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { RESET_PASSWORD } from '../graphql/auth/mutations';
+import { parseError } from '../helpers/auth';
 import { generatePassword } from '../helpers/shipments';
 
 export default function ResetPasswordPage() {
@@ -35,7 +36,7 @@ export default function ResetPasswordPage() {
         navigate('/login');
       }, 2000);
     } catch (err: any) {
-      setError(err?.message || 'Something went wrong. Please try again.');
+      setError(parseError(err));
     }
   };
 

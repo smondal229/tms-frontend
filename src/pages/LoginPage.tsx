@@ -1,9 +1,12 @@
 import { useMutation } from '@apollo/client/react';
+import { enqueueSnackbar } from 'notistack';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
-import { LOGIN } from '../graphql/auth/mutations';
+import PasswordInput from '../components/common/PasswordInput';
+import { LOGIN, RESEND_VERIFICATION } from '../graphql/auth/mutations';
 import type { LoginRequest, LoginResponse } from '../graphql/auth/types';
+import { parseError } from '../helpers/auth';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -15,6 +18,31 @@ export default function LoginPage() {
   });
 
   const [loginMutation, { loading }] = useMutation<LoginResponse, LoginRequest>(LOGIN);
+  const [resendVerification] = useMutation(RESEND_VERIFICATION);
+
+  const handleLoginError = async (errorMsg: string) => {
+    if (errorMsg.includes('not verified')) {
+      await handleUnverifiedUser();
+    } else {
+      enqueueSnackbar(errorMsg, { variant: 'error' });
+    }
+  };
+
+  const handleUnverifiedUser = async () => {
+    try {
+      await resendVerification({
+        variables: { username: form.username }
+      });
+
+      enqueueSnackbar('Your account is not verified. A new verification email has been sent.', {
+        variant: 'info'
+      });
+    } catch {
+      enqueueSnackbar('Unable to resend verification email. Please try again later.', {
+        variant: 'error'
+      });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +57,7 @@ export default function LoginPage() {
         navigate('/dashboard');
       }
     } catch (err: any) {
-      alert(err.message);
+      handleLoginError(parseError(err));
     }
   };
 
@@ -45,6 +73,7 @@ export default function LoginPage() {
             </label>
             <input
               id="username"
+              type="email"
               placeholder="Username"
               value={form.username}
               onChange={(e) => setForm({ ...form, username: e.target.value })}
@@ -57,14 +86,11 @@ export default function LoginPage() {
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
               Password
             </label>
-            <input
+            <PasswordInput
               id="password"
-              type="password"
-              placeholder="Password"
               value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              onChange={(val) => setForm({ ...form, password: val })}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-black-500 focus:outline-none"
             />
           </div>
 

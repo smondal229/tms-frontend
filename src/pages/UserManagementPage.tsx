@@ -5,12 +5,14 @@ import {
   ArrowUpIcon,
   ChevronUpDownIcon
 } from '@heroicons/react/24/outline';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import PasswordInput from '../components/common/PasswordInput';
 import { SIGNUP } from '../graphql/auth/mutations';
 import { GET_ALL_USERS } from '../graphql/auth/queries';
 import type { GetAllUsersResponse } from '../graphql/auth/types';
+import { parseError } from '../helpers/auth';
 import type { User } from '../types/User';
+import { AddUserModal } from '../components/AddUserModal';
 
 interface ColumnConfig {
   key: string;
@@ -23,7 +25,7 @@ export default function UserManagementPage() {
   const currentUserRole: 'ADMIN' | 'EMPLOYEE' = 'ADMIN'; // Replace with real auth context
 
   const { data, loading, refetch } = useQuery<GetAllUsersResponse, {}>(GET_ALL_USERS, {
-    fetchPolicy: 'cache-and-network'
+    fetchPolicy: 'network-only'
   });
 
   const [signupMutation, { loading: creating }] = useMutation(SIGNUP);
@@ -31,18 +33,75 @@ export default function UserManagementPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState<'ALL' | 'ADMIN' | 'EMPLOYEE'>('ALL');
+  const [verifiedFilter, setVerifiedFilter] = useState<'ALL' | 'VERIFIED' | 'NOT_VERIFIED'>('ALL');
   const [role, setRole] = useState<'ADMIN' | 'EMPLOYEE'>('EMPLOYEE');
   const [error, setError] = useState<string | null>(null);
   const [sort, setSort] = useState<{ field: string; direction: 'ASC' | 'DESC' }>({
     field: 'ID',
     direction: 'ASC'
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const users: User[] = useMemo(() => {
+    let filtered = data?.getAllUsers ?? [];
+
+    // 🔎 Search (username)
+    if (search.trim()) {
+      filtered = filtered.filter((u) => u.username.toLowerCase().includes(search.toLowerCase()));
+    }
+
+    // 👤 Role Filter
+    if (roleFilter !== 'ALL') {
+      filtered = filtered.filter((u) => u.role === roleFilter);
+    }
+
+    // ✅ Verified Filter
+    if (verifiedFilter !== 'ALL') {
+      filtered = filtered.filter((u) => (verifiedFilter === 'VERIFIED' ? u.verified : !u.verified));
+    }
+
+    // 🔃 Sorting
+    if (!sort?.field) return filtered;
+
+    const sorted = [...filtered].sort((a, b) => {
+      let aVal = a[sort.field as keyof User];
+      let bVal = b[sort.field as keyof User];
+
+      if (aVal == null || bVal == null) return 0;
+
+      const isNumericA =
+        typeof aVal === 'number' || (typeof aVal === 'string' && !isNaN(Number(aVal)));
+
+      const isNumericB =
+        typeof bVal === 'number' || (typeof bVal === 'string' && !isNaN(Number(bVal)));
+
+      if (isNumericA && isNumericB) {
+        return Number(aVal) - Number(bVal);
+      }
+
+      return String(aVal).localeCompare(String(bVal), undefined, {
+        numeric: true,
+        sensitivity: 'base'
+      });
+    });
+
+    return sort.direction === 'DESC' ? sorted.reverse() : sorted;
+  }, [data, sort, search, roleFilter, verifiedFilter]);
+
+  const totalPages = Math.ceil(users.length / pageSize);
+
+  const paginatedUsers = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return users.slice(start, start + pageSize);
+  }, [users, currentPage, pageSize]);
 
   const USER_COLUMNS = useMemo(() => {
     return [
       {
         key: 'id',
-        sortKey: 'ID',
         label: 'ID',
         sortable: true,
         align: 'left',
@@ -106,9 +165,7 @@ export default function UserManagementPage() {
         });
       },
       onError(err: any) {
-        if (err.errors?.length) {
-          setError(err.errors[0]?.message);
-        }
+        setError(parseError(err));
       }
     });
 
@@ -118,34 +175,9 @@ export default function UserManagementPage() {
     setIsOpen(false);
   };
 
-  const users: User[] = useMemo(() => {
-    const usersData = data?.getAllUsers ?? [];
-    if (!sort?.field) return usersData;
-
-    const sorted = [...usersData].sort((a, b) => {
-      let aVal = a[sort.field as keyof User];
-      let bVal = b[sort.field as keyof User];
-
-      if (aVal == null || bVal == null) return 0;
-
-      const isNumericA =
-        typeof aVal === 'number' || (typeof aVal === 'string' && !isNaN(Number(aVal)));
-
-      const isNumericB =
-        typeof bVal === 'number' || (typeof bVal === 'string' && !isNaN(Number(bVal)));
-
-      if (isNumericA && isNumericB) {
-        return Number(aVal) - Number(bVal);
-      }
-
-      return String(aVal).localeCompare(String(bVal), undefined, {
-        numeric: true,
-        sensitivity: 'base'
-      });
-    });
-
-    return sort.direction === 'DESC' ? sorted.reverse() : sorted;
-  }, [data, sort]);
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, roleFilter, verifiedFilter]);
 
   const handleSort = (col: ColumnConfig) => {
     if (!col.sortable) return;
@@ -160,60 +192,115 @@ export default function UserManagementPage() {
 
   return (
     <div className="min-h-screen !bg-slate-100 p-8">
+      {/* Search + Filters */}
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => refetch()}
-              className="p-2 rounded-2xl !bg-white shadow hover:!bg-slate-50 transition"
-            >
-              <ArrowPathIcon className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
-            </button>
+        {/* Toolbar */}
+        <div className="mb-6">
+          <div className="bg-white rounded-lg shadow px-5 py-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            {/* LEFT SIDE: Search + Filters */}
+            <div className="flex flex-col sm:flex-row gap-3 flex-1">
+              {/* Search */}
+              <div className="relative w-full sm:max-w-xs">
+                <input
+                  type="text"
+                  placeholder="Search username..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full border border-slate-300 rounded-md pl-4 pr-10 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
+                />
+              </div>
 
-            {currentUserRole === 'ADMIN' && (
-              <button
-                onClick={() => setIsOpen(true)}
-                className="!bg-slate-800 text-white px-4 py-2 rounded-2xl shadow hover:!bg-slate-700 transition"
+              {/* Role Filter */}
+              <select
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value as 'ALL' | 'ADMIN' | 'EMPLOYEE')}
+                className="border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
               >
-                Add User
+                <option value="ALL">All Roles</option>
+                <option value="ADMIN">ADMIN</option>
+                <option value="EMPLOYEE">EMPLOYEE</option>
+              </select>
+
+              {/* Verified Filter */}
+              <select
+                value={verifiedFilter}
+                onChange={(e) =>
+                  setVerifiedFilter(e.target.value as 'ALL' | 'VERIFIED' | 'NOT_VERIFIED')
+                }
+                className="border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
+              >
+                <option value="ALL">All Status</option>
+                <option value="VERIFIED">Verified</option>
+                <option value="NOT_VERIFIED">Not Verified</option>
+              </select>
+
+              {/* Reset */}
+              <button
+                onClick={() => {
+                  setSearch('');
+                  setRoleFilter('ALL');
+                  setVerifiedFilter('ALL');
+                }}
+                className="px-4 py-2 text-sm rounded-md border !border-slate-300 hover:!bg-slate-50 transition"
+              >
+                Reset
               </button>
-            )}
+            </div>
+
+            {/* RIGHT SIDE: Actions */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => refetch()}
+                className="p-2 rounded-2xl !bg-white shadow hover:!bg-slate-50 transition"
+              >
+                <ArrowPathIcon className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
+              </button>
+
+              {currentUserRole === 'ADMIN' && (
+                <button
+                  onClick={() => setIsOpen(true)}
+                  className="!bg-slate-800 text-white px-4 py-2 rounded-lg shadow hover:!bg-slate-700 transition"
+                >
+                  Add User
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Table */}
-        <div className="!bg-white rounded-2xl shadow overflow-hidden">
+        <div className="!bg-white rounded-lg shadow overflow-hidden">
           {loading ? (
             <div className="flex justify-center items-center py-16">
               <div className="h-10 w-10 border-4 border-slate-300 border-t-slate-800 rounded-full animate-spin" />
             </div>
           ) : (
             <table className="min-w-full divide-y divide-slate-200">
-              <thead className="bg-gray-50 sticky top-0 z-10">
+              <thead className="!bg-slate-800 sticky top-0 z-10">
                 <tr>
                   {USER_COLUMNS.map((col) => (
                     <th
                       key={col.key}
                       onClick={() => handleSort(col)}
-                      className={`px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50
-                  ${col.align === 'right' ? 'text-right' : 'text-left'}
-                  ${col.sortable ? 'cursor-pointer hover:text-gray-700 select-none' : ''}`}
+                      className={`px-6 py-3 text-xs font-semibold uppercase tracking-wider !bg-slate-800 !text-white
+                      ${col.align === 'right' ? 'text-right' : 'text-left'}
+                      ${col.sortable ? 'cursor-pointer select-none hover:!bg-slate-700 transition' : ''}`}
                     >
-                      <span className="inline-flex items-center gap-1">
+                      <span className="inline-flex items-center gap-2">
                         {col.label}
+
                         {col.sortable && (
                           <span className="inline-flex flex-col">
-                            {sort?.direction === 'ASC' && sort?.field === col.sortKey && (
-                              <ArrowUpIcon className={`w-3 h-3 -mb-1 text-gray-900`} />
+                            {sort?.direction === 'ASC' && sort?.field === col.key && (
+                              <ArrowUpIcon className="w-3 h-3 -mb-1 text-white" />
                             )}
-                            {sort?.direction === 'DESC' && sort?.field === col.sortKey && (
-                              <ArrowDownIcon
-                                className={`w-3 h-3 ${sort?.field === col.sortKey && sort?.direction === 'DESC' ? 'text-gray-900' : 'text-gray-300'}`}
-                              />
+
+                            {sort?.direction === 'DESC' && sort?.field === col.key && (
+                              <ArrowDownIcon className="w-3 h-3 text-white" />
                             )}
-                            {sort?.field !== col.sortKey && (
-                              <ChevronUpDownIcon className={`w-4 h-4 text-gray-600`} />
+
+                            {sort?.field !== col.key && (
+                              <ChevronUpDownIcon className="w-4 h-4 !text-slate-300" />
                             )}
                           </span>
                         )}
@@ -223,7 +310,7 @@ export default function UserManagementPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {users.map((user) => (
+                {paginatedUsers.map((user) => (
                   <tr key={user.id} className="hover:bg-slate-50 transition">
                     <td className="px-6 py-4 text-slate-600 text-sm">{user.id}</td>
                     <td className="px-6 py-4 text-slate-700">{user.username}</td>
@@ -246,90 +333,72 @@ export default function UserManagementPage() {
               </tbody>
             </table>
           )}
-        </div>
-      </div>
-
-      {isOpen && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md">
-            <h2 className="text-xl font-semibold mb-4 text-slate-800">Add New User</h2>
-
-            {error && (
-              <div className="mb-4 rounded-xl bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm">
-                {error}
-              </div>
-            )}
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-600 mb-1">Email</label>
-                <input
-                  type="email"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full border border-slate-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-500"
-                />
-              </div>
-
-              {/* <div>
-                <label className="block text-sm font-medium text-slate-600 mb-1">Password</label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="flex-1 border border-slate-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-500"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setPassword(generatePassword())}
-                    className="!bg-slate-800 text-white px-3 py-2 rounded-xl hover:!bg-slate-700"
-                  >
-                    Auto
-                  </button>
-                </div>
-              </div> */}
-              <PasswordInput
-                value={password}
-                onChange={setPassword}
-                showGenerate={true}
-                label="Password"
-                required={true}
-              />
-
-              <div>
-                <label className="block text-sm font-medium text-slate-600 mb-1">Role</label>
-                <select
-                  value={role}
-                  onChange={(e) => setRole(e.target.value as 'ADMIN' | 'EMPLOYEE')}
-                  className="w-full border !border-slate-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:!ring-slate-500"
-                >
-                  <option value="EMPLOYEE">EMPLOYEE</option>
-                  <option value="ADMIN">ADMIN</option>
-                </select>
-              </div>
+          {/* Pagination */}
+          <div className="flex flex-col md:flex-row items-center justify-between px-6 py-4 border-t border-slate-200 gap-4">
+            {/* Rows Info */}
+            <div className="text-sm text-slate-600">
+              Showing <span className="font-medium">{(currentPage - 1) * pageSize + 1}</span> to{' '}
+              <span className="font-medium">{Math.min(currentPage * pageSize, users.length)}</span>{' '}
+              of <span className="font-medium">{users.length}</span> users
             </div>
 
-            <div className="flex justify-end gap-3 mt-6">
-              <button
-                onClick={() => setIsOpen(false)}
-                className="px-4 py-2 rounded-xl border !border-slate-300"
+            <div className="flex items-center gap-4">
+              {/* Page Size */}
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="border border-slate-300 rounded-xl px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
               >
-                Cancel
-              </button>
-              <button
-                disabled={creating}
-                onClick={handleAddUser}
-                className="px-4 py-2 rounded-xl !bg-slate-800 text-white hover:!bg-slate-700 disabled:opacity-50 flex items-center gap-2"
-              >
-                {creating && (
-                  <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                )}
-                {creating ? 'Creating...' : 'Create'}
-              </button>
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+
+              {/* Pagination Controls */}
+              <div className="flex items-center gap-2">
+                {/* Previous */}
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((p) => p - 1)}
+                  className="px-3 py-1 rounded-xl border border-slate-300 disabled:opacity-40 hover:bg-slate-50 transition"
+                >
+                  Prev
+                </button>
+
+                {/* Page Numbers */}
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-3 py-1 rounded-xl border transition ${
+                      currentPage === page
+                        ? '!bg-slate-800 text-white border-slate-800'
+                        : 'border-slate-300 hover:bg-slate-50'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+
+                {/* Next */}
+                <button
+                  disabled={currentPage === totalPages || totalPages === 0}
+                  onClick={() => setCurrentPage((p) => p + 1)}
+                  className="px-3 py-1 rounded-xl border border-slate-300 disabled:opacity-40 hover:bg-slate-50 transition"
+                >
+                  Next
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      )}
+      </div>
+
+      {isOpen && <AddUserModal onClose={() => setIsOpen(false)} />}
     </div>
   );
 }

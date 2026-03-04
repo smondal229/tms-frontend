@@ -599,19 +599,21 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
             <div className="bg-gray-50/60 border border-gray-200 rounded-xl p-5 space-y-5">
               <h3 className="text-sm font-semibold text-gray-800">Pricing</h3>
               <div className="grid md:grid-cols-3 gap-4">
-                <Field
-                  label="Rate ($)"
-                  type="number"
-                  name="rate"
-                  value={formData.rate || ''}
-                  readOnly
-                  disabled
-                  tooltip={t('auto_calculated')}
-                  loading={rateLoading}
-                />
-                {rateLoading && (
-                  <span className="text-xs text-gray-500">{`${t('calculating_rate')}...`}</span>
-                )}
+                <div>
+                  <Field
+                    label="Rate ($)"
+                    type="number"
+                    name="rate"
+                    value={formData.rate || ''}
+                    readOnly
+                    disabled
+                    tooltip={t('auto_calculated')}
+                    loading={rateLoading}
+                  />
+                  {rateLoading && (
+                    <span className="text-xs text-gray-500">{`${t('calculating_rate')}...`}</span>
+                  )}
+                </div>
                 <Field
                   label="Item Value ($)"
                   type="number"

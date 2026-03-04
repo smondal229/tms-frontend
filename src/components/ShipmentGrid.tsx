@@ -217,30 +217,30 @@ const ShipmentGrid: React.FC<ShipmentGridProps> = ({
   return (
     <div ref={scrollRootRef} className="overflow-auto bg-white shadow rounded max-h-[600px]">
       <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50 sticky top-0 z-10">
+        <thead className="!bg-slate-800 sticky top-0 z-10">
           <tr>
             {COLUMNS.map((col) => (
               <th
                 key={col.key}
                 onClick={() => handleSort(col)}
-                className={`px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50
+                className={`px-6 py-3 text-xs font-medium uppercase tracking-wider bg-slate-700 text-white
                   ${col.align === 'right' ? 'text-right' : 'text-left'}
-                  ${col.sortable ? 'cursor-pointer hover:text-gray-700 select-none' : ''}`}
+                  ${col.sortable ? 'cursor-pointer hover:!bg-slate-800 select-none' : ''}`}
               >
                 <span className="inline-flex items-center gap-1">
                   {col.label}
                   {col.sortable && (
                     <span className="inline-flex flex-col">
                       {sort?.direction === 'ASC' && sort?.field === col.sortKey && (
-                        <ArrowUpIcon className={`w-3 h-3 -mb-1 text-gray-900`} />
+                        <ArrowUpIcon className={`w-3 h-3 -mb-1 text-white-900`} />
                       )}
                       {sort?.direction === 'DESC' && sort?.field === col.sortKey && (
                         <ArrowDownIcon
-                          className={`w-3 h-3 ${sort?.field === col.sortKey && sort?.direction === 'DESC' ? 'text-gray-900' : 'text-gray-300'}`}
+                          className={`w-3 h-3 ${sort?.field === col.sortKey && sort?.direction === 'DESC' ? 'text-white-900' : 'text-white-300'}`}
                         />
                       )}
                       {sort?.field !== col.sortKey && (
-                        <ChevronUpDownIcon className={`w-4 h-4 text-gray-600`} />
+                        <ChevronUpDownIcon className={`w-4 h-4 text-white-600`} />
                       )}
                     </span>
                   )}

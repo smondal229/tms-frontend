@@ -1,7 +1,9 @@
 import { useMutation } from '@apollo/client/react';
+import { enqueueSnackbar } from 'notistack';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { REQUEST_PASSWORD_RESET } from '../graphql/auth/mutations';
+import { parseError } from '../helpers/auth';
 
 export default function ForgotPasswordPage() {
   const [username, setUsername] = useState('');
@@ -10,7 +12,11 @@ export default function ForgotPasswordPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await requestReset({ variables: { username } });
+    try {
+      await requestReset({ variables: { username } });
+    } catch (err) {
+      enqueueSnackbar(parseError(err), { variant: 'error', autoHideDuration: 3000 });
+    }
     setSent(true);
   };
 
