@@ -589,7 +589,7 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
               <AddressSection
                 title={t('delivery')}
                 description={t('delivery_address_description')}
-                errors={errors.deliveryAddress}
+                errors={errors || {}}
                 prefix="deliveryAddress"
                 data={formData.deliveryAddress}
                 onChange={handleChange}

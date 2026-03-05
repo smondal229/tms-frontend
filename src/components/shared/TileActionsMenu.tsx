@@ -10,14 +10,12 @@ const TileActionsMenu: React.FC<TileActionsMenuProps> = ({ isFlagged, handleActi
   return (
     <div className="absolute right-2 top-8 bg-white shadow rounded w-32 z-10">
       <ul>
-        <RoleGuard roles={['ADMIN']}>
-          <li
-            className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-            onClick={() => handleActionClick('edit')}
-          >
-            Edit
-          </li>
-        </RoleGuard>
+        <li
+          className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+          onClick={() => handleActionClick('edit')}
+        >
+          Edit
+        </li>
         <li
           className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
           onClick={() => handleActionClick('flag')}

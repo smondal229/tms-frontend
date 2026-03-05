@@ -54,14 +54,14 @@ export default class ErrorBoundary extends React.Component<Props, State> {
             <div className="flex gap-3 justify-center">
               <button
                 onClick={this.handleReload}
-                className="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 transition"
+                className="px-4 py-2 rounded-xl !bg-slate-900 text-white hover:!bg-slate-800 transition"
               >
                 Reload Page
               </button>
 
               <button
                 onClick={this.handleHome}
-                className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 transition"
+                className="px-4 py-2 rounded-xl border !border-slate-300 !text-slate-700 hover:!bg-slate-100 transition"
               >
                 Go Home
               </button>
