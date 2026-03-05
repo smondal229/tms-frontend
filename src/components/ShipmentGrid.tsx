@@ -1,9 +1,16 @@
-import { ArrowDownIcon, ArrowUpIcon, ChevronUpDownIcon } from '@heroicons/react/24/outline';
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  ChevronUpDownIcon,
+  EllipsisHorizontalIcon
+} from '@heroicons/react/24/outline';
+import { enqueueSnackbar, type SnackbarKey } from 'notistack';
 import React, { useEffect, useRef } from 'react';
 import { formatDate, formatRate, getShipmentStatusLabel } from '../helpers/shipments';
 import type { SortState } from '../pages/ShipmentsPage';
 import type { Shipment, ShipmentSortField } from '../types/Shipment';
 import ShipmentStatusBadge from './ShipmentStatusBadge';
+import TileActionsMenu from './TileActionsMenu';
 
 interface ShipmentGridProps {
   shipments: Shipment[];
@@ -20,6 +27,11 @@ interface ShipmentGridProps {
     filters?: any;
     sort?: any;
   };
+  setCurrentShipment: (shipment: Shipment | null) => void;
+  currentShipment: Shipment | null;
+  onClickEdit: (shipmentId: string) => void;
+  onClickFlag: (shipmentId: string, isFlagged: boolean, snackbarKey: SnackbarKey) => Promise<void>;
+  onClickDelete: (shipmentId: string, snackbarKey: SnackbarKey) => Promise<void>;
 }
 
 interface ColumnConfig {
@@ -28,124 +40,9 @@ interface ColumnConfig {
   sortable: boolean;
   align?: 'left' | 'right';
   sortKey?: ShipmentSortField;
-  render: (s: Shipment) => React.ReactNode;
+  className?: string;
+  render: (s: Shipment | null) => React.ReactNode;
 }
-
-const COLUMNS: ColumnConfig[] = [
-  {
-    key: 'id',
-    sortKey: 'ID',
-    label: 'ID',
-    sortable: true,
-    align: 'left',
-    render: (s) => <span className="text-sm font-medium text-gray-400">#{s.id}</span>
-  },
-  {
-    key: 'shipperName',
-    sortKey: 'SHIPPER',
-    label: 'Shipper',
-    sortable: true,
-    align: 'left',
-    render: (s) => <span className="font-medium text-gray-900">{s.shipperName}</span>
-  },
-  {
-    key: 'carrierName',
-    label: 'Carrier',
-    sortKey: 'CARRIER',
-    sortable: true,
-    align: 'left',
-    render: (s) => <span className="text-gray-600">{s.carrierName}</span>
-  },
-  {
-    key: 'trackingNumber',
-    label: 'Tracking',
-    sortable: false,
-    align: 'left',
-    render: (s) => <span className="font-mono text-sm text-gray-700">{s.trackingNumber}</span>
-  },
-  {
-    key: 'pickupLocation',
-    label: 'Pickup Location',
-    sortable: false,
-    align: 'left',
-    render: (s) => <span className="text-gray-600">{s.pickupAddress.city}</span>
-  },
-  {
-    key: 'deliveryLocation',
-    label: 'Delivery Location',
-    sortable: false,
-    align: 'left',
-    render: (s) => <span className="text-gray-600">{s.deliveryAddress.city}</span>
-  },
-  {
-    key: 'status',
-    label: 'Status',
-    sortable: true,
-    sortKey: 'STATUS',
-    align: 'left',
-    render: (s) => <ShipmentStatusBadge status={s.status} tooltip={getShipmentStatusLabel(s)} />
-  },
-  {
-    key: 'shipmentDeliveryType',
-    label: 'Delivery Type',
-    sortable: false,
-    render: (s) => {
-      const type = s.shipmentDeliveryType;
-
-      const styles = {
-        STANDARD: 'bg-slate-100 text-slate-700',
-        EXPRESS: 'bg-blue-100 text-blue-700',
-        SAME_DAY: 'bg-emerald-100 text-emerald-700'
-      };
-
-      return type ? (
-        <span
-          className={`px-2.5 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
-            styles[type] ?? 'bg-gray-100 text-gray-600'
-          }`}
-        >
-          {type.replace('_', ' ')}
-        </span>
-      ) : (
-        '-'
-      );
-    }
-  },
-  {
-    key: 'rate',
-    label: 'Rate',
-    sortable: true,
-    sortKey: 'RATE',
-    align: 'right',
-    render: (s) => (
-      <span className="tabular-nums font-medium text-gray-900">
-        {formatRate(s.rate, s.paymentMeta?.currency)}
-      </span>
-    )
-  },
-  {
-    key: 'itemValue',
-    label: 'Item Value',
-    sortable: true,
-    sortKey: 'ITEM_VALUE',
-    align: 'right',
-    render: (s) => (
-      <span className="tabular-nums font-medium text-gray-900">
-        {formatRate(s.itemValue, s.paymentMeta?.currency)}
-      </span>
-    )
-  },
-  {
-    key: 'updatedAt',
-    label: 'Last Updated',
-    sortable: true,
-    sortKey: 'UPDATED_AT',
-    align: 'right',
-    render: (s) => (
-      <span className="text-sm text-gray-400 whitespace-nowrap">{formatDate(s.updatedAt)}</span>
-    )
-  }
-];
 
 const ShipmentGrid: React.FC<ShipmentGridProps> = ({
   shipments,
@@ -157,7 +54,12 @@ const ShipmentGrid: React.FC<ShipmentGridProps> = ({
   baseVariables,
   endCursor,
   onSort,
-  sort
+  sort,
+  setCurrentShipment,
+  currentShipment,
+  onClickEdit,
+  onClickFlag,
+  onClickDelete
 }) => {
   const scrollRootRef = useRef<HTMLDivElement | null>(null);
   const lastShipmentRef = useRef<HTMLDivElement | null>(null);
@@ -172,6 +74,160 @@ const ShipmentGrid: React.FC<ShipmentGridProps> = ({
         : { field: col.sortKey, direction: 'ASC' }
     );
   };
+
+  const COLUMNS: ColumnConfig[] = [
+    {
+      key: 'shipperName',
+      sortKey: 'SHIPPER',
+      label: 'Shipper',
+      sortable: true,
+      align: 'left',
+      render: (s) => <span className="font-medium text-gray-900">{s.shipperName}</span>
+    },
+    {
+      key: 'carrierName',
+      label: 'Carrier',
+      sortKey: 'CARRIER',
+      sortable: true,
+      align: 'left',
+      render: (s) => <span className="text-gray-600">{s.carrierName}</span>
+    },
+    {
+      key: 'trackingNumber',
+      label: 'Tracking',
+      sortable: false,
+      align: 'left',
+      render: (s) => <span className="font-mono text-sm text-gray-700">{s.trackingNumber}</span>
+    },
+    {
+      key: 'pickupLocation',
+      label: 'Pickup',
+      sortable: false,
+      align: 'left',
+      className: 'max-w-[130px] truncate',
+      render: (s) => <span className="text-gray-600">{s.pickupAddress.city}</span>
+    },
+    {
+      key: 'deliveryLocation',
+      label: 'Delivery',
+      sortable: false,
+      align: 'left',
+      className: 'max-w-[130px] truncate',
+      render: (s) => <span className="text-gray-600">{s.deliveryAddress.city}</span>
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      sortable: true,
+      sortKey: 'STATUS',
+      className: 'max-w-[150px] whitespace-nowrap',
+      align: 'left',
+      render: (s) => <ShipmentStatusBadge status={s.status} tooltip={getShipmentStatusLabel(s)} />
+    },
+    {
+      key: 'shipmentDeliveryType',
+      label: 'Type',
+      sortable: false,
+      className: 'max-w-[125px] truncate',
+      render: (s) => {
+        const type = s.shipmentDeliveryType;
+
+        const styles = {
+          STANDARD: 'bg-slate-100 text-slate-700',
+          EXPRESS: 'bg-blue-100 text-blue-700',
+          SAME_DAY: 'bg-emerald-100 text-emerald-700'
+        };
+
+        return type ? (
+          <span
+            className={`px-2.5 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
+              styles[type] ?? 'bg-gray-100 text-gray-600'
+            }`}
+          >
+            {type.replace('_', ' ')}
+          </span>
+        ) : (
+          '-'
+        );
+      }
+    },
+    {
+      key: 'rate',
+      label: 'Rate',
+      sortable: true,
+      sortKey: 'RATE',
+      align: 'right',
+      render: (s) => (
+        <span className="tabular-nums font-medium text-gray-900">
+          {formatRate(s.rate, s.paymentMeta?.currency)}
+        </span>
+      )
+    },
+    {
+      key: 'itemValue',
+      label: 'Item Value',
+      sortable: true,
+      sortKey: 'ITEM_VALUE',
+      align: 'right',
+      render: (s) => (
+        <span className="tabular-nums font-medium text-gray-900">
+          {formatRate(s?.itemValue, s?.paymentMeta?.currency)}
+        </span>
+      )
+    },
+    {
+      key: 'updatedAt',
+      label: 'Last Updated',
+      sortable: true,
+      sortKey: 'UPDATED_AT',
+      align: 'right',
+      render: (s) => (
+        <span className="text-sm text-gray-400 whitespace-nowrap">{formatDate(s.updatedAt)}</span>
+      )
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      sortable: false,
+      align: 'right',
+      className: 'relative',
+      render: (s) => (
+        <div onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={(event) => {
+              event.stopPropagation();
+              if (currentShipment?.id === s?.id) setCurrentShipment(null);
+              else setCurrentShipment(s);
+            }}
+            onContextMenu={(event) => event.preventDefault()}
+            className="
+            px-2 py-1 rounded-lg
+            text-gray-500
+            hover:bg-gray-100
+            transition-colors
+          "
+          >
+            <EllipsisHorizontalIcon className="h-5 w-4" />
+          </button>
+          {currentShipment && currentShipment.id === s?.id && (
+            <TileActionsMenu isFlagged={s.isFlagged} handleActionClick={handleActionClick} />
+          )}
+        </div>
+      )
+    }
+  ];
+
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setCurrentShipment(null);
+    };
+
+    document.addEventListener('click', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     const root = scrollRootRef.current;
@@ -214,6 +270,46 @@ const ShipmentGrid: React.FC<ShipmentGridProps> = ({
     return () => observerRef.current?.disconnect();
   }, [shipments.length, endCursor, hasNextPage, fetchMore, baseVariables]);
 
+  const toggleFlag = (isFlagged: boolean) => {
+    if (!currentShipment) return;
+
+    const key = enqueueSnackbar(
+      <div className="flex items-center gap-3">
+        <div className="w-4 h-4 border-2 border-slate-200 border-t-slate-900 rounded-full animate-spin" />
+        <span className="text-sm text-white-700">Processing...</span>
+      </div>,
+      { persist: true }
+    );
+    onClickFlag(currentShipment?.id, isFlagged, key);
+    setCurrentShipment(null);
+  };
+
+  const onDeleteShipment = () => {
+    if (!currentShipment) return;
+    const key = enqueueSnackbar(
+      <div className="flex items-center gap-3">
+        <div className="w-4 h-4 border-2 border-slate-200 border-t-slate-900 rounded-full animate-spin" />
+        <span className="text-sm text-white-700">Processing...</span>
+      </div>,
+      { persist: true }
+    );
+    onClickDelete(currentShipment?.id, key);
+    setCurrentShipment(null);
+  };
+
+  const handleActionClick = (action: string) => {
+    if (!currentShipment) return;
+    setCurrentShipment(null);
+
+    if (action === 'edit') {
+      onClickEdit(currentShipment.id);
+    } else if (action === 'flag') {
+      toggleFlag(!currentShipment.isFlagged);
+    } else if (action === 'delete') {
+      onDeleteShipment();
+    }
+  };
+  console.log('currentShipment--------', currentShipment);
   return (
     <div ref={scrollRootRef} className="overflow-auto bg-white shadow rounded max-h-[600px]">
       <table className="min-w-full divide-y divide-gray-200">
@@ -260,7 +356,7 @@ const ShipmentGrid: React.FC<ShipmentGridProps> = ({
               {COLUMNS.map((col) => (
                 <td
                   key={col.key}
-                  className={`px-6 py-4 ${col.align === 'right' ? 'text-right' : 'text-left'}`}
+                  className={`px-6 py-4 ${col.align === 'right' ? 'text-right' : 'text-left'} ${col.className ?? ''}`}
                 >
                   {col.render(s)}
                 </td>

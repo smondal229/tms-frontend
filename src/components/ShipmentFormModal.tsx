@@ -122,6 +122,7 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
     } = formData;
 
     if (
+      (shipment && shipment?.status !== 'CREATED') ||
       !carrierName ||
       !shipmentDeliveryType ||
       !pickupAddress?.country ||

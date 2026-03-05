@@ -94,6 +94,7 @@ export const GET_SHIPMENT_BY_ID = gql`
         location
         eventTime
         description
+        userId
       }
       paymentMeta {
         currency

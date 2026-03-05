@@ -43,6 +43,7 @@ const ShipmentsPage: React.FC = () => {
   const [shipmentId, setShipmentId] = useState<string | null>(null);
   const [filters, setFilters] = useState(INITIAL_FILTERS);
   const [open, setOpen] = useState(false);
+  const [currentShipment, setCurrentShipment] = useState<Shipment | null>(null);
   const { t } = useTranslation();
 
   const { enqueueSnackbar } = useSnackbar();
@@ -116,6 +117,11 @@ const ShipmentsPage: React.FC = () => {
     } finally {
       setRetrying(false);
     }
+  };
+
+  const selectCurrentShipment = (shipment: Shipment | null) => {
+    console.log('selectCurrentShipment', shipment);
+    setCurrentShipment(shipment);
   };
 
   const onSelectShipment = (shipment: Shipment) => {
@@ -338,6 +344,11 @@ const ShipmentsPage: React.FC = () => {
             hasNextPage={data?.getShipments.pageInfo.hasNextPage ?? false}
             onSort={setSort}
             sort={sort}
+            setCurrentShipment={selectCurrentShipment}
+            currentShipment={currentShipment}
+            onClickEdit={onClickEdit}
+            onClickFlag={onClickFlag}
+            onClickDelete={onClickDelete}
           />
         </div>
       ) : (

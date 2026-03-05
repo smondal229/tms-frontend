@@ -56,8 +56,6 @@ const ShipmentTile: React.FC<ShipmentTileProps> = ({
     } else if (action === 'delete') {
       onDeleteShipment();
     }
-
-    setMenuOpen(false);
   };
 
   return (

@@ -44,3 +44,8 @@ export interface ResetPasswordResponse {
   success: boolean;
   username: string;
 }
+
+export interface GetUserByIdsResponse {
+  getByUserIds: User[];
+}
+

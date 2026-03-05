@@ -6,4 +6,9 @@ export interface ShipmentTracking {
   location: string;
   eventTime: string;
   description?: string | null;
+  userId?: string | null;
+}
+
+export interface ShipmentTrackingWithUser extends ShipmentTracking {
+  createdByName?: string;
 }

@@ -1,4 +1,4 @@
-import { useQuery } from '@apollo/client/react';
+import { useLazyQuery, useQuery } from '@apollo/client/react';
 import {
   ArrowLeftIcon,
   CreditCardIcon,
@@ -6,8 +6,10 @@ import {
   MapPinIcon,
   TruckIcon
 } from '@heroicons/react/24/outline';
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { GET_USER_BY_IDS } from '../graphql/auth/queries';
+import type { GetUserByIdsResponse } from '../graphql/auth/types';
 import { GET_SHIPMENT_BY_ID } from '../graphql/shipments/queries';
 import {
   formatDate,
@@ -16,7 +18,8 @@ import {
   getShipmentStatusLabel
 } from '../helpers/shipments';
 import type { Address, GetShipmentByIdResponse } from '../types/Shipment';
-import type { ShipmentTracking } from '../types/ShipmentTracking';
+import type { ShipmentTrackingWithUser } from '../types/ShipmentTracking';
+import type { User } from '../types/User';
 import CopyButton from './common/CopyButton';
 import ShipmentStatusBadge from './ShipmentStatusBadge';
 
@@ -55,13 +58,50 @@ const trackingStatusConfig: Record<string, { color: string; dot: string }> = {
 const ShipmentDetail: React.FC = () => {
   const { shipmentId } = useParams();
   const navigate = useNavigate();
+  const [users, setUsers] = useState<User[] | null>(null);
 
   const { data, loading, error } = useQuery<GetShipmentByIdResponse>(GET_SHIPMENT_BY_ID, {
     variables: { id: shipmentId },
     skip: !shipmentId
   });
 
+  const [getByUserIds] = useLazyQuery<GetUserByIdsResponse, { userIds: string[] }>(GET_USER_BY_IDS);
+
   const shipment = data?.getShipmentById;
+
+  useEffect(() => {
+    if (shipment) {
+      // @ts-ignore
+      const userIds: string[] =
+        shipment.tracking?.filter((t) => !!t.userId).map((t) => t.userId) ?? [];
+      if (userIds.length > 0) {
+        getByUserIds({ variables: { userIds } }).then((res) => {
+          setUsers(res.data?.getByUserIds ?? []);
+        });
+      }
+    }
+  }, [shipment, getByUserIds]);
+
+  const sortedTracking: ShipmentTrackingWithUser[] = useMemo(() => {
+    const idUserMap: Record<string, User> = (users ?? []).reduce(
+      (acc: Record<string, User>, user: User) => {
+        acc[user.id] = user;
+        return acc;
+      },
+      {}
+    );
+
+    return [...(shipment?.tracking ?? [])]
+      .map((s) => ({
+        ...s,
+        createdByName: s.userId ? idUserMap[s.userId]?.username : undefined
+      }))
+      .sort((a, b) => new Date(a.eventTime).getTime() - new Date(b.eventTime).getTime());
+  }, [shipment?.tracking, users]);
+
+  const formatAddress = (address: Address) => {
+    return `${address.street}, ${address.city}, ${address.state}, ${address.country} - ${address.postalCode}`;
+  };
 
   if (loading) {
     return (
@@ -78,14 +118,6 @@ const ShipmentDetail: React.FC = () => {
       </div>
     );
   }
-
-  const sortedTracking = [...(shipment.tracking ?? [])].sort(
-    (a, b) => new Date(a.eventTime).getTime() - new Date(b.eventTime).getTime()
-  );
-
-  const formatAddress = (address: Address) => {
-    return `${address.street}, ${address.city}, ${address.state}, ${address.country} - ${address.postalCode}`;
-  };
 
   return (
     <div className="max-w-5xl mx-auto space-y-4">
@@ -193,7 +225,7 @@ const ShipmentDetail: React.FC = () => {
         {sortedTracking.length > 0 && (
           <Section title="Tracking History" icon={<MapPinIcon className="w-4 h-4" />}>
             <div className="relative">
-              {sortedTracking.map((event: ShipmentTracking, index: number) => {
+              {sortedTracking.map((event: ShipmentTrackingWithUser, index: number) => {
                 const config = trackingStatusConfig[event.status] ?? {
                   color: 'text-gray-500',
                   dot: 'bg-gray-400'
@@ -215,6 +247,11 @@ const ShipmentDetail: React.FC = () => {
                       </p>
                       <p className="text-gray-500 text-xs">{event.location}</p>
                       <p className="text-gray-400 text-xs mt-0.5">{formatDate(event.eventTime)}</p>
+                      {event.createdByName && (
+                        <p className="text-gray-400 text-xs mt-0.5 italic">
+                          Updated by {event.createdByName}
+                        </p>
+                      )}
                       {event.description && (
                         <p className="text-gray-500 text-xs mt-1">{event.description}</p>
                       )}

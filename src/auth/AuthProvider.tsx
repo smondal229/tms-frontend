@@ -61,7 +61,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       try {
         const { data } = await fetchMe();
-        console.log('mounted 58', mounted);
         if (!mounted) return;
 
         if (data?.me) {

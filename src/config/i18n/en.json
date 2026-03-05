@@ -87,5 +87,6 @@
   "cancel": "Cancel",
   "save": "Save",
   "calculating_rate": "Calculating rate",
-  "auto_calculated": "Auto-calculated field"
+  "auto_calculated": "Auto-calculated field",
+  "update_shipment": "Update Shipment"
 }

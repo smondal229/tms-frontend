@@ -24,11 +24,10 @@ export const GET_ALL_USERS = gql`
 `;
 
 export const GET_USER_BY_IDS = gql`
-  query GetUserByIds($ids: [ID!]!) {
-    getUserByIds(ids: $ids) {
+  query GetByUserIds($userIds: [ID!]!) {
+    getByUserIds(userIds: $userIds) {
       id
       username
-      role
     }
   }
 `;
