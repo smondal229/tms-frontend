@@ -2,9 +2,9 @@ import { useMutation } from '@apollo/client/react';
 import { XCircleIcon } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../auth/AuthProvider';
-import { VERIFY_EMAIL } from '../graphql/auth/mutations';
-import type { VerifyEmailResponse } from '../graphql/auth/types';
+import { VERIFY_EMAIL } from '../../graphql/auth/mutations';
+import type { VerifyEmailResponse } from '../../graphql/auth/types';
+import { useAuth } from '../../hooks/useAuth';
 
 export default function VerifyEmailPage() {
   const { user, logout } = useAuth();

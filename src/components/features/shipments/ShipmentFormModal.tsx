@@ -5,24 +5,27 @@ import { useSnackbar } from 'notistack';
 import { postcodeValidator } from 'postcode-validator';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CarrierName } from '../common/constant';
-import { CREATE_SHIPMENT, UPDATE_SHIPMENT } from '../graphql/shipments/mutations';
-import { CALCULATE_RATE, SHIPMENT_FORM_GET_SHIPMENT_BY_ID } from '../graphql/shipments/queries';
-import type { AddressInput } from '../graphql/shipments/types';
-import { normalizePhone, toDateTimeLocal, toISOStringSafe } from '../helpers/shipments';
-import type { GetShipmentByIdResponse, Shipment } from '../types/Shipment';
-import type { ShipmentFormData } from '../types/ShipmentForm';
+import { CarrierName } from '../../../common/constant';
+import { CREATE_SHIPMENT, UPDATE_SHIPMENT } from '../../../graphql/shipments/mutations';
+import {
+  CALCULATE_RATE,
+  SHIPMENT_FORM_GET_SHIPMENT_BY_ID
+} from '../../../graphql/shipments/queries';
+import type { AddressInput } from '../../../graphql/shipments/types';
+import { normalizePhone, toDateTimeLocal, toISOStringSafe } from '../../../helpers/shipments';
+import type { GetShipmentByIdResponse, Shipment } from '../../../types/Shipment';
+import type { ShipmentFormData } from '../../../types/ShipmentForm';
 import {
   LengthUnit,
   ShipmentDeliveryType,
   ShipmentStatus,
   WeightUnit
-} from '../types/ShipmentForm';
+} from '../../../types/ShipmentForm';
+import Field from '../../ui/Field';
+import SearchSelect from '../../ui/SearchSelect';
+import SelectField from '../../ui/SelectField';
 import AddressSection from './AddressSection';
 import StatusField from './StatusField';
-import Field from './ui/Field';
-import SearchSelect from './ui/SearchSelect';
-import SelectField from './ui/SelectField';
 
 interface CalculateRateResponse {
   calculateRate: number;
@@ -281,7 +284,7 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
         if (!isValid) {
           errors[`${prefix}.postalCode`] = 'Invalid Postal Code for selected country';
         }
-      } catch (err) {
+      } catch (err: any) {
         if (err.message.includes('Invalid country code')) {
           errors[`${prefix}.postalCode`] = 'Country not supported at this time';
         }
@@ -533,7 +536,6 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
                   label={t('carrier_name')}
                   name="carrierName"
                   value={formData.carrierName}
-                  placeholder={t('select_carrier')}
                   onChange={handleChange}
                   error={errors.carrierName}
                   disabled={disabledOnPickedUp}
@@ -587,11 +589,10 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
               <AddressSection
                 title={t('delivery')}
                 description={t('delivery_address_description')}
-                error={errors.deliveryAddress}
+                errors={errors.deliveryAddress}
                 prefix="deliveryAddress"
                 data={formData.deliveryAddress}
                 onChange={handleChange}
-                errors={errors || {}}
                 disabled={disabledOnPickedUp}
               />
             </div>

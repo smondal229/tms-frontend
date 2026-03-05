@@ -2,8 +2,8 @@ import { useMutation } from '@apollo/client/react';
 import { enqueueSnackbar } from 'notistack';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { REQUEST_PASSWORD_RESET } from '../graphql/auth/mutations';
-import { parseError } from '../helpers/auth';
+import { REQUEST_PASSWORD_RESET } from '../../graphql/auth/mutations';
+import { parseError } from '../../helpers/auth';
 
 export default function ForgotPasswordPage() {
   const [username, setUsername] = useState('');

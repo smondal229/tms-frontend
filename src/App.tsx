@@ -7,16 +7,16 @@ import ProtectedRoute from './routes/ProtectedRoute';
 import AppLayout from './layouts/AppLayout';
 import PublicLayout from './layouts/PublicLayout';
 
-import ShipmentDetail from './components/ShipmentDetail';
+import ShipmentDetail from './components/features/shipments/ShipmentDetail';
 import ShipmentsPage from './pages/shipments/ShipmentsPage';
 
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
+import LoginPage from './pages/auth/LoginPage';
+import ResetPasswordPage from './pages/auth/ResetPasswordPage';
+import SignupPage from './pages/auth/SignupPage';
+import VerifyEmailPage from './pages/auth/VerifyEmailPage';
 import ErrorBoundary from './pages/shared/ErrorBoundary';
-import ForgotPasswordPage from './pages/ForgotPasswordPage';
-import LoginPage from './pages/LoginPage';
-import ResetPasswordPage from './pages/ResetPasswordPage';
-import SignupPage from './pages/SignupPage';
 import UserManagementPage from './pages/users/UserManagementPage';
-import VerifyEmailPage from './pages/VerifyEmailPage';
 import GuestRoute from './routes/GuestRoute';
 
 const App: React.FC = () => {

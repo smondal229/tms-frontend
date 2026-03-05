@@ -60,7 +60,9 @@ export const normalizePhone = (phone?: string | null) => {
   return cleaned || null;
 };
 
-export const getShipmentStatusLabel = (s: Shipment) => {
+export const getShipmentStatusLabel = (s: Shipment | null) => {
+  if (!s) return 'NA';
+
   switch (s.status) {
     case 'DELIVERED':
       return `Delivered at: ${formatDate(s.deliveredAt)}`;

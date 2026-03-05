@@ -1,7 +1,7 @@
 export interface User {
-  id: number;
+  id?: number;
   username: string;
-  role: string;
+  role: 'ADMIN' | 'EMPLOYEE';
   verified?: boolean;
   authorities?: string[];
   password?: string;

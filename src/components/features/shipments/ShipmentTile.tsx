@@ -1,9 +1,9 @@
 import { ArrowRightIcon, BanknotesIcon, MapPinIcon, TruckIcon } from '@heroicons/react/24/outline';
 import { enqueueSnackbar, type SnackbarKey } from 'notistack';
 import React, { useState } from 'react';
-import { formatRate } from '../helpers/shipments';
-import type { Shipment } from '../types/Shipment';
-import TileActionsMenu from './TileActionsMenu';
+import { formatRate } from '../../../helpers/shipments';
+import type { Shipment } from '../../../types/Shipment';
+import TileActionsMenu from '../../shared/TileActionsMenu';
 
 interface ShipmentTileProps {
   shipment: Shipment;

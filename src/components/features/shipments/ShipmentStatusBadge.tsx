@@ -1,6 +1,6 @@
 import { InformationCircleIcon } from '@heroicons/react/24/solid';
 import React from 'react';
-import type { ShipmentStatus } from '../types/Shipment';
+import type { ShipmentStatus } from '../../../types/Shipment';
 
 interface Props {
   status?: ShipmentStatus;

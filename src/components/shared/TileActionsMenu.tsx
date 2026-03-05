@@ -1,5 +1,5 @@
 import React from 'react';
-import { RoleGuard } from '../auth/RoleGuard';
+import { RoleGuard } from '../../auth/RoleGuard';
 
 interface TileActionsMenuProps {
   isFlagged: boolean;

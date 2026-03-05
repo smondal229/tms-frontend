@@ -5,6 +5,9 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import FilterPopover from '../../components/features/shipments/FilterPopover';
+import ShipmentFormModal from '../../components/features/shipments/ShipmentFormModal';
+import ShipmentGrid from '../../components/features/shipments/ShipmentGrid';
+import ShipmentTile from '../../components/features/shipments/ShipmentTile';
 import { DELETE_SHIPMENT, FLAG_SHIPMENT } from '../../graphql/shipments/mutations';
 import { GET_SHIPMENTS } from '../../graphql/shipments/queries';
 import type {
@@ -13,9 +16,6 @@ import type {
   ShipmentSortField,
   SortDirection
 } from '../../types/Shipment';
-import ShipmentFormModal from '../components/ShipmentFormModal';
-import ShipmentGrid from '../components/ShipmentGrid';
-import ShipmentTile from '../components/ShipmentTile';
 
 export interface SortState {
   field: ShipmentSortField;

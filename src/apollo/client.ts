@@ -114,7 +114,7 @@ export const refreshLink = new ApolloLink((operation, forward) => {
   });
 });
 
-const authLink = new SetContextLink((prevContext, operation) => {
+const authLink = new SetContextLink((prevContext) => {
   const token = localStorage.getItem(ACCESS_TOKEN_KEY);
 
   return {

@@ -6,11 +6,11 @@ import {
 } from '@heroicons/react/24/outline';
 import { enqueueSnackbar, type SnackbarKey } from 'notistack';
 import React, { useEffect, useRef } from 'react';
-import { formatDate, formatRate, getShipmentStatusLabel } from '../helpers/shipments';
-import type { SortState } from '../pages/ShipmentsPage';
-import type { Shipment, ShipmentSortField } from '../types/Shipment';
+import { formatDate, formatRate, getShipmentStatusLabel } from '../../../helpers/shipments';
+import type { SortState } from '../../../pages/shipments/ShipmentsPage';
+import type { Shipment, ShipmentSortField } from '../../../types/Shipment';
+import TileActionsMenu from '../../shared/TileActionsMenu';
 import ShipmentStatusBadge from './ShipmentStatusBadge';
-import TileActionsMenu from './TileActionsMenu';
 
 interface ShipmentGridProps {
   shipments: Shipment[];
@@ -48,7 +48,6 @@ const ShipmentGrid: React.FC<ShipmentGridProps> = ({
   shipments,
   onSelect,
   loading,
-  error,
   hasNextPage,
   fetchMore,
   baseVariables,
@@ -82,7 +81,7 @@ const ShipmentGrid: React.FC<ShipmentGridProps> = ({
       label: 'Shipper',
       sortable: true,
       align: 'left',
-      render: (s) => <span className="font-medium text-gray-900">{s.shipperName}</span>
+      render: (s) => <span className="font-medium text-gray-900">{s?.shipperName}</span>
     },
     {
       key: 'carrierName',
@@ -90,14 +89,14 @@ const ShipmentGrid: React.FC<ShipmentGridProps> = ({
       sortKey: 'CARRIER',
       sortable: true,
       align: 'left',
-      render: (s) => <span className="text-gray-600">{s.carrierName}</span>
+      render: (s) => <span className="text-gray-600">{s?.carrierName}</span>
     },
     {
       key: 'trackingNumber',
       label: 'Tracking',
       sortable: false,
       align: 'left',
-      render: (s) => <span className="font-mono text-sm text-gray-700">{s.trackingNumber}</span>
+      render: (s) => <span className="font-mono text-sm text-gray-700">{s?.trackingNumber}</span>
     },
     {
       key: 'pickupLocation',
@@ -105,7 +104,7 @@ const ShipmentGrid: React.FC<ShipmentGridProps> = ({
       sortable: false,
       align: 'left',
       className: 'max-w-[130px] truncate',
-      render: (s) => <span className="text-gray-600">{s.pickupAddress.city}</span>
+      render: (s) => <span className="text-gray-600">{s?.pickupAddress?.city}</span>
     },
     {
       key: 'deliveryLocation',
@@ -113,7 +112,7 @@ const ShipmentGrid: React.FC<ShipmentGridProps> = ({
       sortable: false,
       align: 'left',
       className: 'max-w-[130px] truncate',
-      render: (s) => <span className="text-gray-600">{s.deliveryAddress.city}</span>
+      render: (s) => <span className="text-gray-600">{s?.deliveryAddress.city}</span>
     },
     {
       key: 'status',
@@ -122,7 +121,7 @@ const ShipmentGrid: React.FC<ShipmentGridProps> = ({
       sortKey: 'STATUS',
       className: 'max-w-[150px] whitespace-nowrap',
       align: 'left',
-      render: (s) => <ShipmentStatusBadge status={s.status} tooltip={getShipmentStatusLabel(s)} />
+      render: (s) => <ShipmentStatusBadge status={s?.status} tooltip={getShipmentStatusLabel(s)} />
     },
     {
       key: 'shipmentDeliveryType',
@@ -130,7 +129,7 @@ const ShipmentGrid: React.FC<ShipmentGridProps> = ({
       sortable: false,
       className: 'max-w-[125px] truncate',
       render: (s) => {
-        const type = s.shipmentDeliveryType;
+        const type = s?.shipmentDeliveryType;
 
         const styles = {
           STANDARD: 'bg-slate-100 text-slate-700',
@@ -159,7 +158,7 @@ const ShipmentGrid: React.FC<ShipmentGridProps> = ({
       align: 'right',
       render: (s) => (
         <span className="tabular-nums font-medium text-gray-900">
-          {formatRate(s.rate, s.paymentMeta?.currency)}
+          {formatRate(s?.rate, s?.paymentMeta?.currency)}
         </span>
       )
     },
@@ -182,7 +181,7 @@ const ShipmentGrid: React.FC<ShipmentGridProps> = ({
       sortKey: 'UPDATED_AT',
       align: 'right',
       render: (s) => (
-        <span className="text-sm text-gray-400 whitespace-nowrap">{formatDate(s.updatedAt)}</span>
+        <span className="text-sm text-gray-400 whitespace-nowrap">{formatDate(s?.updatedAt)}</span>
       )
     },
     {

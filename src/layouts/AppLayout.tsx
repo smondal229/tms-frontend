@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom';
-import HamburgerMenu from '../components/HamburgerMenu';
-import HorizontalMenu from '../components/HorizontalMenu';
+import HamburgerMenu from '../components/shared/HamburgerMenu';
+import HorizontalMenu from '../components/shared/HorizontalMenu';
 
 export default function AppLayout() {
   return (

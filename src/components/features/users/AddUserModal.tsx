@@ -1,10 +1,10 @@
 import { useMutation } from '@apollo/client/react';
 import { useState } from 'react';
-import { SIGNUP } from '../graphql/auth/mutations';
-import { GET_ALL_USERS } from '../graphql/auth/queries';
-import { parseError } from '../helpers/auth';
-import type { User } from '../types/User';
-import PasswordInput from './ui/PasswordInput';
+import { SIGNUP } from '../../../graphql/auth/mutations';
+import { GET_ALL_USERS } from '../../../graphql/auth/queries';
+import { parseError } from '../../../helpers/auth';
+import type { User } from '../../../types/User';
+import PasswordInput from '../../ui/PasswordInput';
 
 interface IAddUserModalProps {
   onClose: () => void;

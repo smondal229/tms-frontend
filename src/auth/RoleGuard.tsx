@@ -1,4 +1,4 @@
-import { useAuth } from './AuthProvider';
+import { useAuth } from '../hooks/useAuth';
 
 interface RoleGuardProps {
   roles: ('ADMIN' | 'EMPLOYEE')[];

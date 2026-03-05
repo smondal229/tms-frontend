@@ -1,6 +1,6 @@
 import { enqueueSnackbar } from 'notistack';
 import React, { useState } from 'react';
-import { useAuth } from '../auth/AuthProvider';
+import { useAuth } from '../../hooks/useAuth';
 
 const horizontalItems = ['Overview', 'Shipments', 'Analytics'];
 

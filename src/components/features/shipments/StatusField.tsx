@@ -1,7 +1,7 @@
 import React from 'react';
-import type { Shipment, ShipmentStatus as ShipmentStatusType } from '../types/Shipment';
-import { ShipmentStatus, type ShipmentFormData } from '../types/ShipmentForm';
-import SelectField from './ui/SelectField';
+import type { Shipment, ShipmentStatus as ShipmentStatusType } from '../../../types/Shipment';
+import { ShipmentStatus, type ShipmentFormData } from '../../../types/ShipmentForm';
+import SelectField from '../../ui/SelectField';
 
 interface Props {
   shipment?: Shipment;
@@ -36,7 +36,7 @@ const StatusField: React.FC<Props> = ({ shipment, formData, disabled, handleChan
       <SelectField
         label="Status"
         name="status"
-        value={formData.status}
+        value={formData.status || ''}
         disabled={disabled}
         onChange={handleChange}
         tooltip={disabled ? tooltip : undefined}

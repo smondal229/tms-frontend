@@ -1,7 +1,7 @@
 import { Bars3Icon, ChartBarIcon, DocumentTextIcon, TruckIcon } from '@heroicons/react/24/outline';
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../auth/AuthProvider';
+import { useAuth } from '../../hooks/useAuth';
 
 const HamburgerMenu: React.FC = () => {
   const [open, setOpen] = useState(true);

@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@apollo/client/react';
+import { useQuery } from '@apollo/client/react';
 import {
   ArrowDownIcon,
   ArrowPathIcon,
@@ -6,12 +6,10 @@ import {
   ChevronUpDownIcon
 } from '@heroicons/react/24/outline';
 import { useEffect, useMemo, useState } from 'react';
-import { SIGNUP } from '../../graphql/auth/mutations';
+import { AddUserModal } from '../../components/features/users/AddUserModal';
 import { GET_ALL_USERS } from '../../graphql/auth/queries';
 import type { GetAllUsersResponse } from '../../graphql/auth/types';
-import { parseError } from '../../helpers/auth';
 import type { User } from '../../types/User';
-import { AddUserModal } from '../components/AddUserModal';
 
 interface ColumnConfig {
   key: string;
@@ -27,16 +25,10 @@ export default function UserManagementPage() {
     fetchPolicy: 'network-only'
   });
 
-  const [signupMutation, { loading: creating }] = useMutation(SIGNUP);
-
   const [isOpen, setIsOpen] = useState(false);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<'ALL' | 'ADMIN' | 'EMPLOYEE'>('ALL');
   const [verifiedFilter, setVerifiedFilter] = useState<'ALL' | 'VERIFIED' | 'NOT_VERIFIED'>('ALL');
-  const [role, setRole] = useState<'ADMIN' | 'EMPLOYEE'>('EMPLOYEE');
-  const [error, setError] = useState<string | null>(null);
   const [sort, setSort] = useState<{ field: string; direction: 'ASC' | 'DESC' }>({
     field: 'ID',
     direction: 'ASC'
@@ -137,42 +129,6 @@ export default function UserManagementPage() {
       }
     ];
   }, []);
-
-  const handleAddUser = async () => {
-    if (!username || !password) return;
-
-    await signupMutation({
-      variables: { signupInput: { username, password, role } },
-      update(cache) {
-        const existing = cache.readQuery<{ getAllUsers: User[] }>({
-          query: GET_ALL_USERS
-        });
-
-        if (!existing) return;
-
-        const newUser: User = {
-          username,
-          password: '',
-          role
-        };
-
-        cache.writeQuery({
-          query: GET_ALL_USERS,
-          data: {
-            getAllUsers: [...existing.getAllUsers, newUser]
-          }
-        });
-      },
-      onError(err: any) {
-        setError(parseError(err));
-      }
-    });
-
-    setUsername('');
-    setPassword('');
-    setRole('EMPLOYEE');
-    setIsOpen(false);
-  };
 
   useEffect(() => {
     setCurrentPage(1);

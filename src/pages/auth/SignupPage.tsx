@@ -3,9 +3,9 @@ import { CheckCircleIcon } from '@heroicons/react/24/outline';
 import { enqueueSnackbar } from 'notistack';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import PasswordInput from '../components/ui/PasswordInput';
-import { SIGNUP } from '../graphql/auth/mutations';
-import { parseError } from '../helpers/auth';
+import PasswordInput from '../../components/ui/PasswordInput';
+import { SIGNUP } from '../../graphql/auth/mutations';
+import { parseError } from '../../helpers/auth';
 
 export default function SignupPage() {
   const [form, setForm] = useState({

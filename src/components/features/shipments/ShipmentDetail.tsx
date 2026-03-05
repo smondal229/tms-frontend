@@ -8,20 +8,20 @@ import {
 } from '@heroicons/react/24/outline';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { GET_USER_BY_IDS } from '../graphql/auth/queries';
-import type { GetUserByIdsResponse } from '../graphql/auth/types';
-import { GET_SHIPMENT_BY_ID } from '../graphql/shipments/queries';
+import { GET_USER_BY_IDS } from '../../../graphql/auth/queries';
+import type { GetUserByIdsResponse } from '../../../graphql/auth/types';
+import { GET_SHIPMENT_BY_ID } from '../../../graphql/shipments/queries';
 import {
   formatDate,
   formatRate,
   formatTrackingStatus,
   getShipmentStatusLabel
-} from '../helpers/shipments';
-import type { Address, GetShipmentByIdResponse } from '../types/Shipment';
-import type { ShipmentTrackingWithUser } from '../types/ShipmentTracking';
-import type { User } from '../types/User';
-import ShipmentStatusBadge from './ShipmentStatusBadge';
-import CopyButton from './ui/CopyButton';
+} from '../../../helpers/shipments';
+import type { Address, GetShipmentByIdResponse } from '../../../types/Shipment';
+import type { ShipmentTrackingWithUser } from '../../../types/ShipmentTracking';
+import type { User } from '../../../types/User';
+import CopyButton from '../../ui/CopyButton';
+import ShipmentStatusBadge from '../shipments/ShipmentStatusBadge';
 
 const Section: React.FC<{ title: string; icon: React.ReactNode; children: React.ReactNode }> = ({
   title,
@@ -85,6 +85,7 @@ const ShipmentDetail: React.FC = () => {
   const sortedTracking: ShipmentTrackingWithUser[] = useMemo(() => {
     const idUserMap: Record<string, User> = (users ?? []).reduce(
       (acc: Record<string, User>, user: User) => {
+        if (!user.id) return acc;
         acc[user.id] = user;
         return acc;
       },
