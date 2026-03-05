@@ -1,6 +1,6 @@
 import { useLazyQuery, useMutation } from '@apollo/client/react';
 import type { ReactNode } from 'react';
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useEffect, useState } from 'react';
 import Spinner from '../components/ui/Spinner';
 import { LOGOUT, REFRESH_TOKEN } from '../graphql/auth/mutations';
 import { GET_USER_DETAILS } from '../graphql/auth/queries';
@@ -12,7 +12,7 @@ import {
 import type { User } from '../types/User';
 import { tokenService } from './TokenService';
 
-interface AuthContextType {
+export interface AuthContextType {
   token: string | null;
   user: User | null;
   loading: boolean;
@@ -25,7 +25,7 @@ interface AuthContextType {
 export const ACCESS_TOKEN_KEY = 'access_token';
 export const REFRESH_TOKEN_KEY = 'refresh_token';
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(tokenService.getAccessToken());
@@ -163,11 +163,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {children}
     </AuthContext.Provider>
   );
-}
-
-// Custom hook
-export function useAuth(): AuthContextType {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used inside AuthProvider');
-  return ctx;
 }
