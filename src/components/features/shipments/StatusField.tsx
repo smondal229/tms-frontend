@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Shipment, ShipmentStatus as ShipmentStatusType } from '../types/Shipment';
 import { ShipmentStatus, type ShipmentFormData } from '../types/ShipmentForm';
-import SelectField from './common/SelectField';
+import SelectField from './ui/SelectField';
 
 interface Props {
   shipment?: Shipment;

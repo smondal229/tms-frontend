@@ -6,12 +6,11 @@ import {
   ChevronUpDownIcon
 } from '@heroicons/react/24/outline';
 import { useEffect, useMemo, useState } from 'react';
-import PasswordInput from '../components/common/PasswordInput';
-import { SIGNUP } from '../graphql/auth/mutations';
-import { GET_ALL_USERS } from '../graphql/auth/queries';
-import type { GetAllUsersResponse } from '../graphql/auth/types';
-import { parseError } from '../helpers/auth';
-import type { User } from '../types/User';
+import { SIGNUP } from '../../graphql/auth/mutations';
+import { GET_ALL_USERS } from '../../graphql/auth/queries';
+import type { GetAllUsersResponse } from '../../graphql/auth/types';
+import { parseError } from '../../helpers/auth';
+import type { User } from '../../types/User';
 import { AddUserModal } from '../components/AddUserModal';
 
 interface ColumnConfig {

@@ -4,18 +4,18 @@ import { closeSnackbar, useSnackbar, type SnackbarKey } from 'notistack';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import FilterPopover from '../components/FilterPopover';
-import ShipmentFormModal from '../components/ShipmentFormModal';
-import ShipmentGrid from '../components/ShipmentGrid';
-import ShipmentTile from '../components/ShipmentTile';
-import { DELETE_SHIPMENT, FLAG_SHIPMENT } from '../graphql/shipments/mutations';
-import { GET_SHIPMENTS } from '../graphql/shipments/queries';
+import FilterPopover from '../../components/features/shipments/FilterPopover';
+import { DELETE_SHIPMENT, FLAG_SHIPMENT } from '../../graphql/shipments/mutations';
+import { GET_SHIPMENTS } from '../../graphql/shipments/queries';
 import type {
   GetShipmentsResponse,
   Shipment,
   ShipmentSortField,
   SortDirection
-} from '../types/Shipment';
+} from '../../types/Shipment';
+import ShipmentFormModal from '../components/ShipmentFormModal';
+import ShipmentGrid from '../components/ShipmentGrid';
+import ShipmentTile from '../components/ShipmentTile';
 
 export interface SortState {
   field: ShipmentSortField;

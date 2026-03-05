@@ -4,7 +4,7 @@ import { SIGNUP } from '../graphql/auth/mutations';
 import { GET_ALL_USERS } from '../graphql/auth/queries';
 import { parseError } from '../helpers/auth';
 import type { User } from '../types/User';
-import PasswordInput from './common/PasswordInput';
+import PasswordInput from './ui/PasswordInput';
 
 interface IAddUserModalProps {
   onClose: () => void;

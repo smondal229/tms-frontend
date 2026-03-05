@@ -1,8 +1,8 @@
 import { City, Country, State } from 'country-state-city';
 import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import Field from './common/Field';
-import SelectField from './common/SelectField';
+import Field from './ui/Field';
+import SelectField from './ui/SelectField';
 
 interface AddressSectionProps {
   title: string;

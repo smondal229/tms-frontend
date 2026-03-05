@@ -8,14 +8,14 @@ import AppLayout from './layouts/AppLayout';
 import PublicLayout from './layouts/PublicLayout';
 
 import ShipmentDetail from './components/ShipmentDetail';
-import ShipmentsPage from './pages/ShipmentsPage';
+import ShipmentsPage from './pages/shipments/ShipmentsPage';
 
-import ErrorBoundary from './pages/ErrorBoundary';
+import ErrorBoundary from './pages/shared/ErrorBoundary';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import LoginPage from './pages/LoginPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import SignupPage from './pages/SignupPage';
-import UserManagementPage from './pages/UserManagementPage';
+import UserManagementPage from './pages/users/UserManagementPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import GuestRoute from './routes/GuestRoute';
 

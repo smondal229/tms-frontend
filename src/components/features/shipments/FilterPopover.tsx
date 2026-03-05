@@ -2,9 +2,9 @@ import { useQuery } from '@apollo/client/react';
 import { ArrowPathIcon } from '@heroicons/react/24/outline';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { GET_ALL_FILTER_OPTIONS } from '../graphql/shipments/queries';
-import type { GetAllFilterOptionsResponse } from '../types/Shipment';
-import RangeSlider from './common/RangeSlider';
+import { GET_ALL_FILTER_OPTIONS } from '../../../graphql/shipments/queries';
+import type { GetAllFilterOptionsResponse } from '../../../types/Shipment';
+import RangeSlider from '../../ui/RangeSlider';
 
 type ShipmentFilterState = {
   carrier: string[];

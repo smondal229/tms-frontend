@@ -20,8 +20,8 @@ import {
 import type { Address, GetShipmentByIdResponse } from '../types/Shipment';
 import type { ShipmentTrackingWithUser } from '../types/ShipmentTracking';
 import type { User } from '../types/User';
-import CopyButton from './common/CopyButton';
 import ShipmentStatusBadge from './ShipmentStatusBadge';
+import CopyButton from './ui/CopyButton';
 
 const Section: React.FC<{ title: string; icon: React.ReactNode; children: React.ReactNode }> = ({
   title,

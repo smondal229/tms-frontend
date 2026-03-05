@@ -3,7 +3,7 @@ import { enqueueSnackbar } from 'notistack';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
-import PasswordInput from '../components/common/PasswordInput';
+import PasswordInput from '../components/ui/PasswordInput';
 import { LOGIN, RESEND_VERIFICATION } from '../graphql/auth/mutations';
 import type { LoginRequest, LoginResponse } from '../graphql/auth/types';
 import { parseError } from '../helpers/auth';

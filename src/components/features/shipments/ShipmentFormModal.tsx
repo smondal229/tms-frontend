@@ -19,10 +19,10 @@ import {
   WeightUnit
 } from '../types/ShipmentForm';
 import AddressSection from './AddressSection';
-import Field from './common/Field';
-import SearchSelect from './common/SearchSelect';
-import SelectField from './common/SelectField';
 import StatusField from './StatusField';
+import Field from './ui/Field';
+import SearchSelect from './ui/SearchSelect';
+import SelectField from './ui/SelectField';
 
 interface CalculateRateResponse {
   calculateRate: number;

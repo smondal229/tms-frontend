@@ -1,7 +1,7 @@
 import { useLazyQuery, useMutation } from '@apollo/client/react';
 import type { ReactNode } from 'react';
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import Spinner from '../components/common/Spinner';
+import Spinner from '../components/ui/Spinner';
 import { LOGOUT, REFRESH_TOKEN } from '../graphql/auth/mutations';
 import { GET_USER_DETAILS } from '../graphql/auth/queries';
 import {
