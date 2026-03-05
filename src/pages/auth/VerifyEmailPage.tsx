@@ -1,6 +1,6 @@
 import { useMutation } from '@apollo/client/react';
 import { XCircleIcon } from '@heroicons/react/24/outline';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router-dom';
 import { VERIFY_EMAIL } from '../../graphql/auth/mutations';
@@ -13,19 +13,17 @@ export default function VerifyEmailPage() {
   const token = params.get('token');
   const { t } = useTranslation();
 
-  const [verify, { data }] = useMutation<VerifyEmailResponse, {}>(VERIFY_EMAIL);
-  const [status, setStatus] = useState('loading');
+  const [verify, { data, loading, error }] = useMutation<VerifyEmailResponse, {}>(VERIFY_EMAIL);
   const verifiedEmail = data?.verifiedEmail ?? '';
-
+  console.log('data', data);
   useEffect(() => {
     if (!token) return;
-
-    verify({ variables: { token } })
-      .then(() => setStatus('success'))
-      .catch(() => setStatus('error'));
+    (async () => {
+      await verify({ variables: { token } });
+    })();
   }, [token]);
 
-  if (status === 'loading') {
+  if (loading) {
     return (
       <div className="flex flex-col items-center">
         <div className="w-16 h-16 border-4 border-slate-200 border-t-slate-700 rounded-full animate-spin mb-2"></div>
@@ -34,7 +32,7 @@ export default function VerifyEmailPage() {
     );
   }
 
-  if (status === 'error') {
+  if (!!error) {
     return (
       <div className="flex flex-col mb-2 items-center">
         <XCircleIcon className="w-16 h-16 text-red-400"></XCircleIcon>
