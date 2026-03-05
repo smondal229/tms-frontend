@@ -46,7 +46,14 @@ const StatusField: React.FC<Props> = ({ shipment, formData, disabled, handleChan
           const isAllowed = allowedNextStatuses.includes(status);
 
           return (
-            <option key={status} value={status} disabled={!isCurrent && !isAllowed}>
+            <option
+              key={status}
+              value={status}
+              disabled={!isCurrent && !isAllowed}
+              className={
+                !isCurrent && !isAllowed ? 'cursor-not-allowed opacity-60' : 'font-semibold'
+              }
+            >
               {status.replaceAll('_', ' ')}
             </option>
           );

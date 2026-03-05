@@ -41,9 +41,9 @@
   "select_carrier": "Select Carrier",
   "select_delivery_type": "Select Delivery Type",
   "delivery_type_change_error": "Delivery type cannot be changed once shipment is picked up",
-  "shipment_status_change_error": "Shipment status cannot be changed once shipment is delivered",
+  "shipment_status_change_error": "Shipment status cannot be changed once delivered or cancelled",
   "tracking_details": "Tracking Details",
-  "current_location_change_error": "Current location cannot be changed once shipment is delivered",
+  "current_location_change_error": "Current location cannot be changed once delivered or cancelled",
   "current_location": "Current Location",
   "pickup_address_description": "Location where the shipment begins.",
   "pickup": "Pickup",
@@ -88,5 +88,6 @@
   "save": "Save",
   "calculating_rate": "Calculating rate",
   "auto_calculated": "Auto-calculated field",
-  "update_shipment": "Update Shipment"
+  "update_shipment": "Update Shipment",
+  "invalid_link": "Invalid or expired link"
 }

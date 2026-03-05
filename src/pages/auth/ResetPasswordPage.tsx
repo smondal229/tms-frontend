@@ -1,9 +1,9 @@
 import { useMutation } from '@apollo/client/react';
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import PasswordInput from '../../components/ui/PasswordInput';
 import { RESET_PASSWORD } from '../../graphql/auth/mutations';
 import { parseError } from '../../helpers/auth';
-import { generatePassword } from '../../helpers/shipments';
 
 export default function ResetPasswordPage() {
   const [params] = useSearchParams();
@@ -109,7 +109,7 @@ export default function ResetPasswordPage() {
 
             {/* Password Field */}
             <div>
-              <label className="block text-sm font-medium !text-slate-600 mb-1">New Password</label>
+              {/* <label className="block text-sm font-medium !text-slate-600 mb-1">New Password</label>
               <div className="flex items-center gap-2">
                 <input
                   type="password"
@@ -126,7 +126,16 @@ export default function ResetPasswordPage() {
                 >
                   Auto
                 </button>
-              </div>
+              </div> */}
+              <PasswordInput
+                id="resetPasswordPassword"
+                label="New Password"
+                placeholder="Enter new password"
+                value={password}
+                onChange={setPassword}
+                required
+                showGenerate={true}
+              />
             </div>
 
             {/* Submit Button */}

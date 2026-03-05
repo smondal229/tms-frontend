@@ -46,6 +46,7 @@ export const refreshLink = new ApolloLink((operation, forward) => {
         const unauthorized = result.errors?.some(
           (err) =>
             err.extensions?.code === 'UNAUTHENTICATED' ||
+            err.message?.toLowerCase().includes('not authorized') ||
             err.message?.toLowerCase().includes('unauthorized')
         );
 

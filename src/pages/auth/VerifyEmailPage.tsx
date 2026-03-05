@@ -1,6 +1,7 @@
 import { useMutation } from '@apollo/client/react';
 import { XCircleIcon } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router-dom';
 import { VERIFY_EMAIL } from '../../graphql/auth/mutations';
 import type { VerifyEmailResponse } from '../../graphql/auth/types';
@@ -10,6 +11,7 @@ export default function VerifyEmailPage() {
   const { user, logout } = useAuth();
   const [params] = useSearchParams();
   const token = params.get('token');
+  const { t } = useTranslation();
 
   const [verify, { data }] = useMutation<VerifyEmailResponse, {}>(VERIFY_EMAIL);
   const [status, setStatus] = useState('loading');
@@ -23,20 +25,23 @@ export default function VerifyEmailPage() {
       .catch(() => setStatus('error'));
   }, [token]);
 
-  if (status === 'loading')
+  if (status === 'loading') {
     return (
       <div className="flex flex-col items-center">
         <div className="w-16 h-16 border-4 border-slate-200 border-t-slate-700 rounded-full animate-spin mb-2"></div>
         <p>Verifying...</p>
       </div>
     );
-  if (status === 'error')
+  }
+
+  if (status === 'error') {
     return (
       <div className="flex flex-col mb-2 items-center">
         <XCircleIcon className="w-16 h-16 text-red-400"></XCircleIcon>
-        <p>Invalid or expired link.</p>
+        <p>{t('invalid_link')}</p>
       </div>
     );
+  }
 
   return (
     <>

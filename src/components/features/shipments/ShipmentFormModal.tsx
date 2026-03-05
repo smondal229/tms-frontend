@@ -164,7 +164,11 @@ const ShipmentFormModal: React.FC<ShipmentFormModalProps> = ({
   ]);
 
   const disabledOnDelivered = useMemo(() => {
-    return mode === 'edit' && shipment?.status === ShipmentStatus.DELIVERED;
+    return (
+      mode === 'edit' &&
+      (shipment?.status === ShipmentStatus.DELIVERED ||
+        shipment?.status === ShipmentStatus.CANCELLED)
+    );
   }, [mode, shipment?.status]);
 
   useEffect(() => {

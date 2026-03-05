@@ -39,7 +39,7 @@ const ShipmentsPage: React.FC = () => {
   const [retrying, setRetrying] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const isFetchingMore = useRef(false);
-  const [sort, setSort] = useState<SortState | null>({ field: 'ID', direction: 'ASC' });
+  const [sort, setSort] = useState<SortState | null>({ field: 'UPDATED_AT', direction: 'DESC' });
   const [shipmentId, setShipmentId] = useState<string | null>(null);
   const [filters, setFilters] = useState(INITIAL_FILTERS);
   const [open, setOpen] = useState(false);

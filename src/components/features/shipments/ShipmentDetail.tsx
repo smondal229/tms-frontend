@@ -225,7 +225,7 @@ const ShipmentDetail: React.FC = () => {
         {/* Tracking Timeline */}
         {sortedTracking.length > 0 && (
           <Section title="Tracking History" icon={<MapPinIcon className="w-4 h-4" />}>
-            <div className="relative">
+            <div className="relative max-h-96 overflow-y-auto">
               {sortedTracking.map((event: ShipmentTrackingWithUser, index: number) => {
                 const config = trackingStatusConfig[event.status] ?? {
                   color: 'text-gray-500',

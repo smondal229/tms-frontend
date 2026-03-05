@@ -2,9 +2,9 @@ import {
   ArrowDownIcon,
   ArrowUpIcon,
   ChevronUpDownIcon,
-  EllipsisHorizontalIcon,
-  FlagIcon
+  EllipsisHorizontalIcon
 } from '@heroicons/react/24/outline';
+import { FlagIcon } from '@heroicons/react/24/solid';
 import { enqueueSnackbar, type SnackbarKey } from 'notistack';
 import React, { useEffect, useRef } from 'react';
 import { formatDate, formatRate, getShipmentStatusLabel } from '../../../helpers/shipments';
@@ -101,7 +101,7 @@ const ShipmentGrid: React.FC<ShipmentGridProps> = ({
         return (
           <div className="flex items-center gap-2">
             {s?.isFlagged && <FlagIcon className="h-4 w-4 text-red-500" title="Flagged shipment" />}
-            <span className="font-mono text-sm text-gray-700">{s?.trackingNumber}</span>;
+            <span className="font-mono text-sm text-gray-700">{s?.trackingNumber}</span>
           </div>
         );
       }
