@@ -54,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(true);
 
       const savedToken = tokenService.getAccessToken();
- 
+
       if (!savedToken) {
         if (mounted) setLoading(false);
         return;
@@ -91,12 +91,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     tokenService.setAccessToken(tokens.accessToken);
     localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
     setToken(tokens.accessToken);
+    setLoading(true);
 
     try {
       const { data } = await fetchMe();
       setUser(data?.me ?? null);
     } catch (err) {
       logout();
+    } finally {
+      setLoading(false);
     }
   }, []);
 
