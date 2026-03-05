@@ -120,7 +120,6 @@ const ShipmentsPage: React.FC = () => {
   };
 
   const selectCurrentShipment = (shipment: Shipment | null) => {
-    console.log('selectCurrentShipment', shipment);
     setCurrentShipment(shipment);
   };
 
@@ -188,7 +187,7 @@ const ShipmentsPage: React.FC = () => {
     snackbarKey: SnackbarKey
   ): Promise<void> => {
     if (!shipmentId) return;
-    console.log('onClickFlag', shipmentId, newFlagState);
+
     try {
       await flagShipment({
         variables: {

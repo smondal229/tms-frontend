@@ -54,7 +54,7 @@ export default function LoginPage() {
 
       if (data?.login) {
         login(data.login);
-        navigate('/dashboard');
+        navigate('/');
       }
     } catch (err: any) {
       handleLoginError(parseError(err));

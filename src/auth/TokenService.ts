@@ -6,7 +6,7 @@ export const tokenService = {
   getAccessToken: () => {
     if (accessToken) return accessToken;
     const token = localStorage.getItem(ACCESS_TOKEN_KEY);
-    console.log('token', token);
+
     if (token) accessToken = token;
     return token;
   },

@@ -309,7 +309,7 @@ const ShipmentGrid: React.FC<ShipmentGridProps> = ({
       onDeleteShipment();
     }
   };
-  console.log('currentShipment--------', currentShipment);
+
   return (
     <div ref={scrollRootRef} className="overflow-auto bg-white shadow rounded max-h-[600px]">
       <table className="min-w-full divide-y divide-gray-200">

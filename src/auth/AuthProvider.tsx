@@ -1,6 +1,7 @@
 import { useLazyQuery, useMutation } from '@apollo/client/react';
 import type { ReactNode } from 'react';
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import Spinner from '../components/common/Spinner';
 import { LOGOUT, REFRESH_TOKEN } from '../graphql/auth/mutations';
 import { GET_USER_DETAILS } from '../graphql/auth/queries';
 import {
@@ -53,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(true);
 
       const savedToken = tokenService.getAccessToken();
-      console.log('savedToken', savedToken);
+ 
       if (!savedToken) {
         if (mounted) setLoading(false);
         return;
@@ -139,6 +140,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const isAuthenticated = !!user;
+
+  if (loading) {
+    return <Spinner />;
+  }
 
   return (
     <AuthContext.Provider
