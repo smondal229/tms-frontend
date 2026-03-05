@@ -202,8 +202,8 @@ const ShipmentGrid: React.FC<ShipmentGridProps> = ({
             onContextMenu={(event) => event.preventDefault()}
             className="
             px-2 py-1 rounded-lg
-            text-gray-500
-            hover:bg-gray-100
+            text-gray-700
+            hover:!bg-gray-100
             transition-colors
           "
           >
