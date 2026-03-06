@@ -215,7 +215,7 @@ const ShipmentsPage: React.FC = () => {
         variant: 'success',
         autoHideDuration: 3000
       });
-    } catch (err) {
+    } catch (_) {
       closeSnackbar(snackbarKey);
       enqueueSnackbar(t('shipment_flag_failed'), {
         variant: 'error',
@@ -240,7 +240,7 @@ const ShipmentsPage: React.FC = () => {
         variant: 'success',
         autoHideDuration: 3000
       });
-    } catch (err) {
+    } catch (_) {
       closeSnackbar(snackbarKey);
       enqueueSnackbar(t('shipment_delete_failed'), {
         variant: 'error',

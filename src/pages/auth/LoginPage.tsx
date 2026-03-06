@@ -49,7 +49,10 @@ export default function LoginPage() {
 
     try {
       const { data } = await loginMutation({
-        variables: form
+        variables: {
+          username: form.username.trim().toLowerCase(),
+          password: form.password.trim().toLowerCase()
+        }
       });
 
       if (data?.login) {

@@ -59,3 +59,9 @@ export const LOGOUT = gql`
     logout(refreshToken: $refreshToken)
   }
 `;
+
+export const CHANGE_ACTIVE_STATUS = gql`
+  mutation ChangeActiveStatus($userId: ID!, $activeStatus: Boolean!) {
+    changeActiveStatus(userId: $userId, activeStatus: $activeStatus)
+  }
+`;

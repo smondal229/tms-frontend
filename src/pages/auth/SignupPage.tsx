@@ -30,8 +30,8 @@ export default function SignupPage() {
       await signup({
         variables: {
           signupInput: {
-            username: form.username,
-            password: form.password,
+            username: form.username.trim().toLowerCase(),
+            password: form.password.trim().toLowerCase(),
             role: form.role
           }
         }

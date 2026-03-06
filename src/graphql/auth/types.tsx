@@ -49,3 +49,11 @@ export interface GetUserByIdsResponse {
   getByUserIds: User[];
 }
 
+export interface ChangeActiveStatusRequest {
+  userId: number;
+  activeStatus: boolean;
+}
+
+export interface ChangeActiveStatusResponse {
+  changeActiveStatus: boolean;
+}

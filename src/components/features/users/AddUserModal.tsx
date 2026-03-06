@@ -21,7 +21,13 @@ export const AddUserModal = ({ onClose }: IAddUserModalProps) => {
     if (!username || !password) return;
 
     await signupMutation({
-      variables: { signupInput: { username, password, role } },
+      variables: {
+        signupInput: {
+          username: username.trim().toLowerCase(),
+          password: password.trim().toLowerCase(),
+          role
+        }
+      },
       update(cache) {
         const existing = cache.readQuery<{ getAllUsers: User[] }>({
           query: GET_ALL_USERS

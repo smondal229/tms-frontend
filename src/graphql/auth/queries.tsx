@@ -19,6 +19,7 @@ export const GET_ALL_USERS = gql`
       username
       role
       verified
+      active
     }
   }
 `;

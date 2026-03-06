@@ -1,30 +1,35 @@
-import { useQuery } from '@apollo/client/react';
+import { useMutation, useQuery } from '@apollo/client/react';
 import {
   ArrowDownIcon,
   ArrowPathIcon,
   ArrowUpIcon,
   ChevronUpDownIcon
 } from '@heroicons/react/24/outline';
+import { CheckCircleIcon, NoSymbolIcon } from '@heroicons/react/24/solid';
+import { closeSnackbar, enqueueSnackbar } from 'notistack';
 import { useEffect, useMemo, useState } from 'react';
 import { AddUserModal } from '../../components/features/users/AddUserModal';
+import { CHANGE_ACTIVE_STATUS } from '../../graphql/auth/mutations';
 import { GET_ALL_USERS } from '../../graphql/auth/queries';
-import type { GetAllUsersResponse } from '../../graphql/auth/types';
+import type {
+  ChangeActiveStatusRequest,
+  ChangeActiveStatusResponse,
+  GetAllUsersResponse
+} from '../../graphql/auth/types';
+import { useAuth } from '../../hooks/useAuth';
 import type { User } from '../../types/User';
 
 interface ColumnConfig {
   key: string;
   label: string;
-  sortable: boolean;
+  align: 'left' | 'right';
   render: (user: User) => React.ReactNode;
+  sortable?: boolean;
 }
 
 export default function UserManagementPage() {
+  const { user } = useAuth();
   const currentUserRole: 'ADMIN' | 'EMPLOYEE' = 'ADMIN'; // Replace with real auth context
-
-  const { data, loading, refetch } = useQuery<GetAllUsersResponse, {}>(GET_ALL_USERS, {
-    fetchPolicy: 'network-only'
-  });
-
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<'ALL' | 'ADMIN' | 'EMPLOYEE'>('ALL');
@@ -36,8 +41,16 @@ export default function UserManagementPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
+  const { data, loading, refetch } = useQuery<GetAllUsersResponse, {}>(GET_ALL_USERS, {
+    fetchPolicy: 'network-only'
+  });
+
+  const [changeActiveStatus] = useMutation<ChangeActiveStatusResponse, ChangeActiveStatusRequest>(
+    CHANGE_ACTIVE_STATUS
+  );
+
   const users: User[] = useMemo(() => {
-    let filtered = data?.getAllUsers ?? [];
+    let filtered = data?.getAllUsers.filter((u) => u.id !== user?.id) ?? [];
 
     // 🔎 Search (username)
     if (search.trim()) {
@@ -58,8 +71,8 @@ export default function UserManagementPage() {
     if (!sort?.field) return filtered;
 
     const sorted = [...filtered].sort((a, b) => {
-      let aVal = a[sort.field as keyof User];
-      let bVal = b[sort.field as keyof User];
+      const aVal = a[sort.field as keyof User];
+      const bVal = b[sort.field as keyof User];
 
       if (aVal == null || bVal == null) return 0;
 
@@ -89,7 +102,48 @@ export default function UserManagementPage() {
     return users.slice(start, start + pageSize);
   }, [users, currentPage, pageSize]);
 
-  const USER_COLUMNS = useMemo(() => {
+  const handleToggleActive = async (user: User) => {
+    const newStatus = !user.active;
+
+    const snackbarId = enqueueSnackbar(`${newStatus ? 'Activating' : 'Suspending'} user...`, {
+      variant: 'info',
+      persist: true
+    });
+
+    try {
+      const { data } = await changeActiveStatus({
+        variables: {
+          userId: Number(user.id),
+          activeStatus: newStatus
+        },
+        update: (cache) => {
+          cache.modify({
+            id: cache.identify({ __typename: 'User', id: user.id }),
+            fields: {
+              active() {
+                return newStatus;
+              }
+            }
+          });
+        }
+      });
+
+      closeSnackbar(snackbarId);
+
+      if (data?.changeActiveStatus) {
+        enqueueSnackbar(`User ${newStatus ? 'activated' : 'suspended'} successfully`, {
+          variant: 'success'
+        });
+      } else {
+        enqueueSnackbar('Operation failed', { variant: 'error' });
+      }
+    } catch {
+      closeSnackbar(snackbarId);
+      enqueueSnackbar('Something went wrong', { variant: 'error' });
+    }
+  };
+
+  const USER_COLUMNS: ColumnConfig[] = useMemo(() => {
     return [
       {
         key: 'id',
@@ -125,6 +179,40 @@ export default function UserManagementPage() {
           >
             {u.verified ? 'Verified' : 'Not Verified'}
           </span>
+        )
+      },
+      {
+        key: 'active',
+        label: 'Active',
+        align: 'left',
+        render: (u: User) => (
+          <span
+            className={`px-3 py-1 text-xs rounded-full ${
+              u.active ? '!bg-blue-600 text-white' : '!bg-red-500 text-white'
+            }`}
+          >
+            {u.active ? 'Active' : 'Suspended'}
+          </span>
+        )
+      },
+      {
+        key: 'actions',
+        label: '',
+        align: 'right',
+        render: (u: User) => (
+          <button
+            onClick={() => handleToggleActive(u)}
+            title={u.active ? 'Suspend user' : 'Activate user'}
+            className={`p-2 rounded-lg transition
+        ${u.active ? 'text-red-500 hover:bg-red-50' : 'text-green-500 hover:bg-green-50'}
+      `}
+          >
+            {u.active ? (
+              <NoSymbolIcon className="w-6 h-6" />
+            ) : (
+              <CheckCircleIcon className="w-6 h-6" />
+            )}
+          </button>
         )
       }
     ];
@@ -267,22 +355,16 @@ export default function UserManagementPage() {
               <tbody className="divide-y divide-slate-100">
                 {paginatedUsers.map((user) => (
                   <tr key={user.id} className="hover:bg-slate-50 transition">
-                    <td className="px-6 py-4 text-slate-600 text-sm">{user.id}</td>
-                    <td className="px-6 py-4 text-slate-700">{user.username}</td>
-                    <td className="px-6 py-4">
-                      <span className="px-3 py-1 text-xs rounded-full bg-slate-800 text-white">
-                        {user.role}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`px-3 py-1 text-xs rounded-full ${
-                          user.verified ? 'bg-green-600 text-white' : 'bg-slate-300 text-slate-700'
+                    {USER_COLUMNS.map((col) => (
+                      <td
+                        key={col.key}
+                        className={`px-6 py-4 text-sm ${
+                          col.align === 'right' ? 'text-right' : 'text-left'
                         }`}
                       >
-                        {user.verified ? 'Verified' : 'Not Verified'}
-                      </span>
-                    </td>
+                        {col.render ? col.render(user) : user[col.key as keyof User]}
+                      </td>
+                    ))}
                   </tr>
                 ))}
               </tbody>
